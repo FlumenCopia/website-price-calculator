@@ -1,109 +1,122 @@
 /* ==========================================================================
    FLUMENX SMART WEBSITE PRICING CALCULATOR - LOGIC ENGINE
-   Business-Focused Questionnaire Engine + TVM Low-Based Rates
+   Local Digital Agency Pricing Philosophy (TVM, Kerala Rates)
    ========================================================================== */
 
 (function () {
     'use strict';
 
     /* --------------------------------------------------------------------------
-       1. DEFAULT CONFIGURATION & TVM RATES
+       1. DEFAULT LOCAL AGENCY TVM RATES CONFIGURATION
        -------------------------------------------------------------------------- */
     const DEFAULT_CONFIG = {
         projectTypes: {
-            landing_page: { name: 'Landing Page', price: 12000, hours: 25, desc: 'Single high-converting page for marketing & leads', icon: 'layout' },
-            business_website: { name: 'Business Website', price: 25000, hours: 45, desc: 'Standard multi-page site for business presentation', icon: 'globe' },
-            corporate_website: { name: 'Corporate Website', price: 45000, hours: 70, desc: 'Multi-section enterprise portal with compliance pages', icon: 'briefcase' },
-            ecommerce: { name: 'E-commerce Store', price: 70000, hours: 110, desc: 'Online store with catalog, shopping cart & payments', icon: 'shopping-bag', autoSelect: ['payment_gateway', 'store', 'admin_dashboard'] },
-            booking_website: { name: 'Booking Website', price: 60000, hours: 100, desc: 'Appointment scheduling & reservation system', icon: 'calendar', autoSelect: ['booking', 'payment_gateway', 'notifications'] },
-            school_portal: { name: 'School / College Portal', price: 75000, hours: 120, desc: 'Educational institution site with news, staff & notices', icon: 'layers', autoSelect: ['reports', 'notifications'] },
-            hospital_website: { name: 'Hospital Website', price: 80000, hours: 130, desc: 'Medical clinic / hospital portal with doctor booking', icon: 'users', autoSelect: ['booking', 'notifications'] },
-            crm_erp: { name: 'CRM / ERP System', price: 150000, hours: 220, desc: 'Internal business management & operational workflow platform', icon: 'cpu', autoSelect: ['admin_dashboard', 'reports', 'notifications'] },
-            custom_webapp: { name: 'Custom Web Application', price: 120000, hours: 180, desc: 'Tailor-made web app built to custom workflow specs', icon: 'code' }
+            landing_page: { name: 'Landing Page', price: 10000, hours: 25, desc: 'Single high-converting page for marketing & lead gen', icon: 'layout' },
+            business_website: { name: 'Business Website', price: 22000, hours: 45, desc: 'Standard multi-page site for local business presentation', icon: 'globe' },
+            corporate_website: { name: 'Corporate Website', price: 40000, hours: 70, desc: 'Multi-section corporate portal with compliance pages', icon: 'briefcase' },
+            hospital_website: { name: 'Hospital Website', price: 45000, hours: 130, desc: 'Medical clinic / hospital portal with doctor booking', icon: 'users', autoSelect: ['booking', 'notifications'] },
+            school_portal: { name: 'School Website', price: 40000, hours: 120, desc: 'Educational institution site with news, staff & notices', icon: 'layers', autoSelect: ['reports', 'notifications'] },
+            ecommerce: { name: 'E-commerce Store', price: 60000, hours: 110, desc: 'Online store with catalog, cart & payment gateway', icon: 'shopping-bag', autoSelect: ['payment_gateway', 'store', 'admin_dashboard'] },
+            booking_website: { name: 'Booking Platform', price: 50000, hours: 100, desc: 'Appointment scheduling & reservation engine', icon: 'calendar', autoSelect: ['booking', 'payment_gateway', 'notifications'] },
+            crm: { name: 'CRM System', price: 100000, hours: 160, desc: 'Lead pipeline management & client CRM portal', icon: 'cpu', autoSelect: ['admin_dashboard', 'reports', 'notifications'] },
+            erp: { name: 'ERP System', price: 180000, hours: 220, desc: 'Resource planning for inventory, HR & operations', icon: 'layers', autoSelect: ['admin_dashboard', 'reports', 'notifications'] },
+            custom_webapp: { name: 'Custom Web Application', price: 140000, hours: 180, desc: 'Tailor-made web app built to custom business workflow', icon: 'code' }
         },
 
         businessSizes: {
-            individual: { name: 'Individual', mult: 1.0, desc: 'Personal portfolio, freelancer, or solo practitioner' },
-            startup: { name: 'Startup', mult: 1.0, desc: 'Early-stage venture or emerging brand' },
-            small_business: { name: 'Small Business', mult: 1.05, desc: 'Local business, clinic, or service shop' },
-            medium_business: { name: 'Medium Business', mult: 1.15, desc: 'Established company with multi-team workflows' },
-            large_company: { name: 'Large Company', mult: 1.25, desc: 'Corporate enterprise requiring SLA & scale' }
+            individual: { name: 'Individual', price: 0, desc: 'Personal portfolio, freelancer, or solo practitioner' },
+            startup: { name: 'Startup', price: 0, desc: 'Early-stage venture or emerging local brand' },
+            small_business: { name: 'Small Business', price: 2000, desc: 'Local business, clinic, or service shop (+₹2,000)' },
+            medium_business: { name: 'Medium Business', price: 5000, desc: 'Established company with multi-team workflows (+₹5,000)' },
+            large_company: { name: 'Large Company', price: 10000, desc: 'Corporate enterprise requiring SLA & scale (+₹10,000)' }
         },
 
         budgetRanges: {
-            b_under_30k: { name: 'Under ₹30,000', target: 30000, desc: 'Economy essential budget' },
-            b_30k_60k: { name: '₹30,000 – ₹60,000', target: 60000, desc: 'Standard business budget' },
-            b_60k_1lakh: { name: '₹60,000 – ₹1 Lakh', target: 100000, desc: 'Growth & e-commerce budget' },
-            b_1l_3l: { name: '₹1–3 Lakhs', target: 300000, desc: 'Advanced platform budget' },
-            b_3l_plus: { name: '₹3 Lakhs+', target: 500000, desc: 'Custom enterprise budget' }
+            b_under_25k: { name: 'Under ₹25,000', target: 25000, desc: 'Economy essential budget' },
+            b_25k_50k: { name: '₹25,000 – ₹50,000', target: 50000, desc: 'Standard local business budget' },
+            b_50k_75k: { name: '₹50,000 – ₹75,000', target: 75000, desc: 'Growth & e-commerce budget' },
+            b_75k_1lakh: { name: '₹75,000 – ₹1 Lakh', target: 100000, desc: 'Advanced portal budget' },
+            b_1l_plus: { name: '₹1 Lakh+', target: 150000, desc: 'Custom enterprise budget' }
         },
 
         pageCounts: {
             p1_5: { name: '1–5 Pages', price: 0, hours: 0, desc: 'Included in base price' },
-            p6_10: { name: '6–10 Pages', price: 10000, hours: 10, desc: 'Avg +₹2,000 per page' },
-            p11_20: { name: '11–20 Pages', price: 20000, hours: 20, desc: 'Avg +₹2,000 per page' },
-            p20_plus: { name: '20+ Pages', price: 45000, hours: 45, desc: 'Custom high-volume architecture' }
+            p6_10: { name: '6–10 Pages', price: 6000, hours: 10, desc: 'Avg +₹1,200 per page' },
+            p11_20: { name: '11–20 Pages', price: 12000, hours: 20, desc: 'Avg +₹1,200 per page' },
+            p20_plus: { name: '20+ Pages', price: 25000, hours: 45, desc: 'Custom high-volume architecture' }
         },
 
         cmsOptions: {
-            no: { name: 'No', price: 0, hours: 0, desc: 'Content updated directly in source code' },
-            occasionally: { name: 'Yes, occasionally', price: 4000, hours: 5, desc: 'Basic CMS for blog or news updates' },
-            frequently: { name: 'Yes, frequently', price: 8000, hours: 10, desc: 'Full CMS dashboard for daily team updates' }
+            no: { name: 'No', price: 0, hours: 0, desc: 'Content updated directly in code' },
+            occasionally: { name: 'Yes, occasionally', price: 2000, hours: 5, desc: 'Basic CMS for blog or news updates' },
+            frequently: { name: 'Yes, frequently', price: 5000, hours: 10, desc: 'Full CMS dashboard for daily team updates' }
         },
 
         userAccountOptions: {
             none: { name: 'No', price: 0, hours: 0, desc: 'Public website without logins' },
-            customers: { name: 'Customers Only', price: 6000, hours: 8, desc: 'Client portal & user sign up' },
-            staff: { name: 'Staff Only', price: 8000, hours: 10, desc: 'Internal employee login & role rules' },
-            both: { name: 'Both Customers & Staff', price: 15000, hours: 18, desc: 'Multi-role authentication system' }
+            customers: { name: 'Customers Only', price: 4000, hours: 8, desc: 'Client login & registration portal' },
+            staff: { name: 'Staff Only', price: 5000, hours: 10, desc: 'Internal employee login & role rules' },
+            both: { name: 'Both Customers & Staff', price: 8000, hours: 18, desc: 'Multi-role authentication system' }
         },
 
         features: {
-            contact_form: { name: 'Contact Form', price: 1500, hours: 2, desc: 'Lead inquiry form with email notifications', icon: 'code' },
-            blog: { name: 'Blog', price: 4000, hours: 5, desc: 'Articles & publishing CMS', icon: 'layout' },
-            gallery: { name: 'Photo Gallery', price: 3000, hours: 4, desc: 'Lightbox media grid', icon: 'globe' },
-            payment_gateway: { name: 'Online Payments', price: 8000, hours: 10, desc: 'Razorpay, Stripe, or UPI integration', icon: 'shopping-bag' },
-            booking: { name: 'Booking / Appointments', price: 12000, hours: 12, desc: 'Calendar reservation slot engine', icon: 'calendar' },
-            store: { name: 'Online Store', price: 15000, hours: 15, desc: 'Product catalog & cart drawer', icon: 'store' },
-            customer_dashboard: { name: 'Customer Dashboard', price: 12000, hours: 14, desc: 'My Orders / Profile portal', icon: 'users' },
-            admin_dashboard: { name: 'Admin Dashboard', price: 15000, hours: 18, desc: 'Management control panel', icon: 'cpu' },
-            reports: { name: 'Reports & Analytics', price: 8000, hours: 8, desc: 'Sales & user activity metrics', icon: 'layers' },
-            notifications: { name: 'Notifications', price: 5000, hours: 5, desc: 'Email / SMS alert system', icon: 'code' },
-            multilang: { name: 'Multi-language', price: 10000, hours: 10, desc: 'Multi-lingual content support', icon: 'globe' },
-            chat: { name: 'Live Chat', price: 4000, hours: 4, desc: 'WhatsApp or Intercom widget', icon: 'code' }
+            contact_form: { name: 'Contact Form', price: 0, hours: 2, desc: 'Included in base package', icon: 'code' },
+            blog: { name: 'Blog', price: 2000, hours: 5, desc: 'Articles & publishing CMS', icon: 'layout' },
+            gallery: { name: 'Photo Gallery', price: 2000, hours: 4, desc: 'Lightbox media grid', icon: 'globe' },
+            search: { name: 'Instant Search', price: 2000, hours: 4, desc: 'Live instant search filter', icon: 'code' },
+            whatsapp: { name: 'WhatsApp Direct', price: 1000, hours: 2, desc: 'Click to chat lead link', icon: 'code' },
+            maps: { name: 'Google Maps API', price: 1500, hours: 3, desc: 'Location map pins setup', icon: 'globe' },
+            chat: { name: 'Live Chat Support', price: 2000, hours: 4, desc: 'Live chat support widget', icon: 'code' },
+            reviews: { name: 'Reviews & Ratings', price: 2500, hours: 4, desc: 'Customer star reviews', icon: 'users' },
+            notifications: { name: 'Notifications', price: 3000, hours: 5, desc: 'Email / SMS alert system', icon: 'code' },
+            reports: { name: 'Reports & Export', price: 5000, hours: 8, desc: 'PDF / Excel exports & metrics', icon: 'layers' },
+            multilang: { name: 'Multi-language (i18n)', price: 6000, hours: 10, desc: 'Multi-lingual content engine', icon: 'globe' },
+            payment_gateway: { name: 'Online Payments', price: 8000, hours: 10, desc: 'Razorpay / Stripe / UPI integration', icon: 'shopping-bag' },
+            booking: { name: 'Booking Engine', price: 8000, hours: 12, desc: 'Calendar reservation slot engine', icon: 'calendar' },
+            api_integration: { name: 'Custom API Integration', price: 8000, hours: 12, desc: 'Connect 3rd-party REST APIs', icon: 'code' },
+            admin_dashboard: { name: 'Admin Dashboard', price: 10000, hours: 18, desc: 'Management control panel', icon: 'cpu' },
+            store: { name: 'Online Store Engine', price: 10000, hours: 15, desc: 'Product catalog & cart drawer', icon: 'store' }
         },
 
         designStyles: {
-            simple: { name: 'Simple', mult: 1.0, hours: 0, desc: 'Clean, minimal standard UI design' },
-            modern: { name: 'Modern', mult: 1.10, hours: 10, desc: 'Sleek custom component styling & layout polish' },
-            premium: { name: 'Premium', mult: 1.20, hours: 20, desc: 'Framer / Linear level micro-interactions' },
-            luxury: { name: 'Luxury', mult: 1.35, hours: 35, desc: 'Bespoke high-end motion & luxury art direction' }
+            simple: { name: 'Simple', price: 0, hours: 0, desc: 'Clean, minimal standard UI design (+₹0)' },
+            modern: { name: 'Modern', price: 5000, hours: 10, desc: 'Sleek custom component styling (+₹5,000)' },
+            premium: { name: 'Premium', price: 10000, hours: 20, desc: 'Linear / Framer level polished UI (+₹10,000)' },
+            luxury: { name: 'Luxury', price: 20000, hours: 35, desc: 'Bespoke motion & high-end art direction (+₹20,000)' }
         },
 
         animations: {
-            minimal: { name: 'Minimal', price: 0, hours: 0, desc: 'Standard subtle hover transitions' },
-            standard: { name: 'Standard', price: 3000, hours: 4, desc: 'Smooth fade-in & scroll triggers' },
-            premium: { name: 'Premium', price: 8000, hours: 8, desc: 'Advanced motion graphics & parallax' }
+            none: { name: 'None', price: 0, hours: 0, desc: 'Standard static transitions (+₹0)' },
+            basic: { name: 'Basic', price: 2000, hours: 3, desc: 'Smooth fade-in & hover effects (+₹2,000)' },
+            advanced: { name: 'Advanced', price: 5000, hours: 8, desc: 'Scroll triggers & motion graphics (+₹5,000)' },
+            premium: { name: 'Premium', price: 10000, hours: 18, desc: 'Advanced WebGL & interactive motion (+₹10,000)' }
+        },
+
+        seoLevels: {
+            basic: { name: 'Basic SEO', price: 0, hours: 2, desc: 'Included in base package' },
+            advanced: { name: 'Advanced SEO', price: 3000, hours: 6, desc: 'Schema markup & Speed optimization (+₹3,000)' },
+            enterprise: { name: 'Enterprise SEO', price: 8000, hours: 15, desc: 'Programmatic SEO & multi-region setup (+₹8,000)' }
         },
 
         timelines: {
             flexible: { name: 'Flexible', mult: 0.95, desc: 'Economy pace (-5% discount)' },
-            normal: { name: 'Normal', mult: 1.0, desc: 'Standard 4–6 weeks delivery' },
+            normal: { name: 'Normal', mult: 1.0, desc: 'Standard 3–5 weeks delivery' },
             priority: { name: 'Priority', mult: 1.10, desc: 'Fast-track 2–3 weeks (+10%)' },
             urgent: { name: 'Urgent', mult: 1.20, desc: 'Rush 1–2 weeks (+20% surcharge)' }
         },
 
         deployments: {
-            client: { name: 'Client', price: 0, hours: 0, desc: 'Client handles server & hosting' },
-            flumenx: { name: 'FlumenX Managed', price: 3000, hours: 3, desc: 'Deploy to Vercel / Hostinger / VPS' },
-            cloud: { name: 'Cloud Infrastructure', price: 15000, hours: 15, desc: 'AWS / GCP cloud setup & CI/CD' }
+            client: { name: 'Client', price: 0, hours: 0, desc: 'Client handles server & hosting (+₹0)' },
+            deploy_only: { name: 'Deployment Only', price: 2000, hours: 2, desc: 'Deploy to Vercel / Hostinger / VPS (+₹2,000)' },
+            server_setup: { name: 'VPS Setup', price: 5000, hours: 6, desc: 'Linux VPS, SSL & Nginx setup (+₹5,000)' },
+            cloud: { name: 'Cloud Infrastructure', price: 10000, hours: 14, desc: 'AWS / GCP cloud setup & CI/CD (+₹10,000)' }
         },
 
         supportPlans: {
-            none: { name: 'No', price: 0, hours: 0, desc: 'No monthly maintenance contract' },
-            basic: { name: 'Basic Support', price: 2000, hours: 3, desc: '₹2,000/mo - Security updates & bug fixes' },
-            standard: { name: 'Standard Support', price: 5000, hours: 8, desc: '₹5,000/mo - Backups, content tweaks & monitoring' },
-            premium: { name: 'Premium Support', price: 10000, hours: 16, desc: '₹10,000/mo - 24/7 priority SLA & dedicated support' }
+            none: { name: 'No Maintenance', price: 0, hours: 0, desc: 'No monthly maintenance contract' },
+            basic: { name: 'Basic Support', price: 1500, hours: 3, desc: '₹1,500/mo - Security updates & bug fixes' },
+            standard: { name: 'Standard Support', price: 3000, hours: 8, desc: '₹3,000/mo - Backups, content tweaks & monitoring' },
+            premium: { name: 'Premium Support', price: 6000, hours: 16, desc: '₹6,000/mo - 24/7 priority SLA & dedicated support' }
         }
     };
 
@@ -128,18 +141,19 @@
         totalSteps: 12,
         projectType: 'business_website',
         businessSize: 'small_business',
-        budgeRange: 'b_30k_60k',
+        budgeRange: 'b_25k_50k',
         pageCount: 'p1_5',
         cmsOption: 'occasionally',
         userAccounts: 'none',
         selectedFeatures: ['contact_form'],
         designStyle: 'simple',
-        animationLevel: 'minimal',
+        animationLevel: 'none',
         timeline: 'normal',
-        deployment: 'flumenx',
+        deployment: 'deploy_only',
         supportPlan: 'none',
         customNotes: '',
         gstIncluded: true,
+        discountPercent: 0,
         profitMarginPercent: 30
     };
 
@@ -283,7 +297,7 @@
             if (item.price !== undefined) {
                 priceText = item.price > 0 ? `+₹${formatINR(item.price)}` : 'Included';
             } else if (item.mult !== undefined) {
-                priceText = item.mult === 1.0 ? '1.0x Base' : `${item.mult}x Multiplier`;
+                priceText = item.mult === 1.0 ? '1.0x Rush' : `${item.mult}x Rush`;
             } else if (item.target !== undefined) {
                 priceText = 'Target Budget';
             }
@@ -376,7 +390,7 @@
         'Animations',
         'Timeline',
         'Deployment',
-        'Support & SLA',
+        'Support SLA',
         'Executive Estimate'
     ];
 
@@ -440,7 +454,7 @@
     }
 
     /* --------------------------------------------------------------------------
-       7. PRICING CALCULATOR ENGINE & COMPLEXITY ALGORITHM
+       7. LOCAL TVM AGENCY PRICING CALCULATOR ENGINE (FIXED ADDITIVE MODEL)
        -------------------------------------------------------------------------- */
     function calculateEstimate() {
         const proj = CONFIG.projectTypes[state.projectType] || CONFIG.projectTypes.business_website;
@@ -449,45 +463,50 @@
         const cms = CONFIG.cmsOptions[state.cmsOption] || CONFIG.cmsOptions.no;
         const userAcc = CONFIG.userAccountOptions[state.userAccounts] || CONFIG.userAccountOptions.none;
         const design = CONFIG.designStyles[state.designStyle] || CONFIG.designStyles.simple;
-        const anim = CONFIG.animations[state.animationLevel] || CONFIG.animations.minimal;
+        const anim = CONFIG.animations[state.animationLevel] || CONFIG.animations.none;
         const time = CONFIG.timelines[state.timeline] || CONFIG.timelines.normal;
-        const deploy = CONFIG.deployments[state.deployment] || CONFIG.deployments.client;
+        const deploy = CONFIG.deployments[state.deployment] || CONFIG.deployments.deploy_only;
         const support = CONFIG.supportPlans[state.supportPlan] || CONFIG.supportPlans.none;
-        const budgetObj = CONFIG.budgetRanges[state.budgeRange] || CONFIG.budgetRanges.b_30k_60k;
+        const budgetObj = CONFIG.budgetRanges[state.budgeRange] || CONFIG.budgetRanges.b_25k_50k;
 
-        let basePrice = proj.price;
+        // Base Website = Base Project Type + Business Size increment
+        let baseWebsiteCost = proj.price + (biz.price || 0);
         let baseHours = proj.hours || 0;
 
+        // Page volume cost
+        let pageCost = page.price || 0;
+
         // Features sum
-        let featuresPrice = 0;
+        let featuresCost = 0;
         let featuresHours = 0;
         state.selectedFeatures.forEach(featKey => {
             const feat = CONFIG.features[featKey];
             if (feat) {
-                featuresPrice += (feat.price || 0);
+                featuresCost += (feat.price || 0);
                 featuresHours += (feat.hours || 0);
             }
         });
 
-        // Sum of additional features & scope addons
-        let additionalFeaturesCost = featuresPrice + (cms.price || 0) + (userAcc.price || 0) + (anim.price || 0);
-        let scopeAddons = (page.price || 0) + additionalFeaturesCost;
+        // Additional scope addons (CMS + User Accounts + Features + Animations)
+        let totalFeaturesCost = featuresCost + (cms.price || 0) + (userAcc.price || 0) + (anim.price || 0);
 
-        // Unmultiplied Subtotal
-        let rawSubtotal = basePrice + scopeAddons;
-
-        // Multipliers: Business Size, Design Style, Timeline
-        let bizMult = biz.mult !== undefined ? biz.mult : 1.0;
-        let designMult = design.mult !== undefined ? design.mult : 1.0;
-        let timeMult = time.mult !== undefined ? time.mult : 1.0;
-
-        let designCost = (rawSubtotal * designMult) - rawSubtotal;
+        // Fixed Design cost & Deployment cost
+        let designCost = design.price || 0;
         let deploymentCost = deploy.price || 0;
 
-        let multipliedSubtotal = (rawSubtotal * bizMult * designMult * timeMult) + deploymentCost;
-        let finalBaseTotal = multipliedSubtotal;
+        // Subtotal before timeline surcharge and discount
+        let rawSubtotal = baseWebsiteCost + pageCost + totalFeaturesCost + designCost + deploymentCost;
 
-        // Dev Hours Discipline Breakdown
+        // Apply Timeline Rush multiplier if Priority or Urgent
+        let timeMult = time.mult !== undefined ? time.mult : 1.0;
+        let timelineSubtotal = Math.round(rawSubtotal * timeMult);
+
+        // Apply Internal Sales Discount
+        let discountPercent = state.discountPercent || 0;
+        let discountAmount = Math.round(timelineSubtotal * (discountPercent / 100));
+        let finalBaseTotal = timelineSubtotal - discountAmount;
+
+        // Dev Hours (strictly internal effort planning - NOT multiplied by rate)
         let totalHours = (baseHours + (page.hours || 0) + (cms.hours || 0) + (userAcc.hours || 0) + featuresHours + (design.hours || 0) + (anim.hours || 0) + (deploy.hours || 0));
         let frontendHours = Math.round(totalHours * 0.50);
         let backendHours = Math.round(totalHours * 0.30);
@@ -495,40 +514,46 @@
         let deploymentHours = Math.max(Math.round(totalHours * 0.08), 2);
 
         // GST Tax (18%)
-        let gstAmount = state.gstIncluded ? (finalBaseTotal * 0.18) : 0;
+        let gstAmount = state.gstIncluded ? Math.round(finalBaseTotal * 0.18) : 0;
         let grandTotal = finalBaseTotal + gstAmount;
 
-        // Target Budget Match Analysis
-        let clientTargetBudget = budgetObj.target || 60000;
-        let budgetVariance = grandTotal - clientTargetBudget; // positive means exceeds budget
+        // Client Target Budget Comparison
+        let clientTargetBudget = budgetObj.target || 50000;
+        let budgetVariance = grandTotal - clientTargetBudget; // > 0 means exceeds budget
 
-        // Project Complexity Score (1 to 10 scale)
-        let complexityScore = 2; // base
+        // Project Complexity Rating (1-10)
+        let complexityScore = 2;
         if (state.selectedFeatures.length >= 4) complexityScore += 2;
         if (state.selectedFeatures.length >= 8) complexityScore += 2;
         if (state.userAccounts !== 'none') complexityScore += 1;
         if (state.cmsOption === 'frequently') complexityScore += 1;
-        if (['ecommerce', 'crm_erp', 'custom_webapp'].includes(state.projectType)) complexityScore += 2;
+        if (['ecommerce', 'crm', 'erp', 'custom_webapp'].includes(state.projectType)) complexityScore += 2;
         complexityScore = Math.min(Math.max(complexityScore, 1), 10);
 
-        // 3 Quote Tiers: Minimum (-20%), Recommended (Selected), Premium (+25%)
-        let minQuote = Math.round(grandTotal * 0.80);
-        let recQuote = Math.round(grandTotal);
-        let premQuote = Math.round(grandTotal * 1.25);
+        // 3 Estimate Quotation Levels
+        let economyQuote = Math.round(grandTotal * 0.82); // Economy scope (~18% lower)
+        let recommendedQuote = Math.round(grandTotal);
+        let premiumQuote = Math.round(grandTotal * 1.25); // Premium scope (+25%)
 
-        // Internal Profit Calculation
-        let devCost = Math.round(finalBaseTotal * 0.60); // 60% internal labor cost
+        // Internal Profit Calculation (Dev Cost vs Selling Price)
+        let devCost = Math.round(finalBaseTotal * 0.55); // 55% internal labor cost
         let profitAmount = finalBaseTotal - devCost;
-        let marginPercent = Math.round((profitAmount / finalBaseTotal) * 100);
+        let marginPercent = finalBaseTotal > 0 ? Math.round((profitAmount / finalBaseTotal) * 100) : 0;
 
         return {
-            basePrice,
-            pagePrice: page.price || 0,
-            featuresPrice,
-            additionalFeaturesCost,
+            baseWebsiteCost,
+            pageCost,
+            totalFeaturesCost,
+            featuresCostOnly: featuresCost,
+            cmsCost: cms.price || 0,
+            userAccCost: userAcc.price || 0,
+            animCost: anim.price || 0,
             designCost,
             deploymentCost,
             rawSubtotal,
+            timelineSubtotal,
+            discountPercent,
+            discountAmount,
             finalBaseTotal,
             gstAmount,
             grandTotal,
@@ -541,9 +566,9 @@
             clientTargetBudget,
             budgetVariance,
             complexityScore,
-            minQuote,
-            recQuote,
-            premQuote,
+            economyQuote,
+            recommendedQuote,
+            premiumQuote,
             devCost,
             profitAmount,
             marginPercent
@@ -578,7 +603,7 @@
         el.sbSpecProjectType.textContent = projObj ? projObj.name : 'Business Website';
 
         const budgetObj = CONFIG.budgetRanges[state.budgeRange];
-        el.sbSpecBudget.textContent = budgetObj ? budgetObj.name : '₹30K–₹60K';
+        el.sbSpecBudget.textContent = budgetObj ? budgetObj.name : '₹25K–₹50K';
 
         const pageObj = CONFIG.pageCounts[state.pageCount];
         el.sbSpecPages.textContent = pageObj ? pageObj.name : '1–5';
@@ -599,64 +624,83 @@
 
         // Mini Breakdown
         el.sidebarMiniBreakdown.innerHTML = `
-            <div class="breakdown-row"><span>Base Cost</span> <span class="val">₹${formatINR(est.basePrice)}</span></div>
-            ${est.pagePrice > 0 ? `<div class="breakdown-row"><span>Pages Volume</span> <span class="val">+₹${formatINR(est.pagePrice)}</span></div>` : ''}
-            ${est.additionalFeaturesCost > 0 ? `<div class="breakdown-row"><span>Features Cost</span> <span class="val">+₹${formatINR(est.additionalFeaturesCost)}</span></div>` : ''}
-            ${est.designCost > 0 ? `<div class="breakdown-row"><span>Design Style</span> <span class="val">+₹${formatINR(est.designCost)}</span></div>` : ''}
+            <div class="breakdown-row"><span>Base Website</span> <span class="val">₹${formatINR(est.baseWebsiteCost)}</span></div>
+            ${est.pageCost > 0 ? `<div class="breakdown-row"><span>Pages</span> <span class="val">+₹${formatINR(est.pageCost)}</span></div>` : ''}
+            ${est.totalFeaturesCost > 0 ? `<div class="breakdown-row"><span>Features</span> <span class="val">+₹${formatINR(est.totalFeaturesCost)}</span></div>` : ''}
+            ${est.designCost > 0 ? `<div class="breakdown-row"><span>Design</span> <span class="val">+₹${formatINR(est.designCost)}</span></div>` : ''}
             ${est.deploymentCost > 0 ? `<div class="breakdown-row"><span>Deployment</span> <span class="val">+₹${formatINR(est.deploymentCost)}</span></div>` : ''}
+            ${est.discountAmount > 0 ? `<div class="breakdown-row" style="color:var(--success-color)"><span>Discount (-${est.discountPercent}%)</span> <span class="val">-₹${formatINR(est.discountAmount)}</span></div>` : ''}
             ${state.gstIncluded ? `<div class="breakdown-row"><span>GST Tax (18%)</span> <span class="val">+₹${formatINR(est.gstAmount)}</span></div>` : ''}
         `;
     }
 
     /* --------------------------------------------------------------------------
-       8. FINAL ESTIMATE DASHBOARD (STEP 14)
+       8. FINAL ESTIMATE DASHBOARD & PROPOSAL SHEET (STEP 14)
        -------------------------------------------------------------------------- */
     function renderFinalSummary() {
         const est = calculateEstimate();
         const projObj = CONFIG.projectTypes[state.projectType] || CONFIG.projectTypes.business_website;
         const bizObj = CONFIG.businessSizes[state.businessSize] || CONFIG.businessSizes.small_business;
-        const budgetObj = CONFIG.budgetRanges[state.budgeRange] || CONFIG.budgetRanges.b_30k_60k;
+        const budgetObj = CONFIG.budgetRanges[state.budgeRange] || CONFIG.budgetRanges.b_25k_50k;
         const pageObj = CONFIG.pageCounts[state.pageCount] || CONFIG.pageCounts.p1_5;
         const designObj = CONFIG.designStyles[state.designStyle] || CONFIG.designStyles.simple;
         const timeObj = CONFIG.timelines[state.timeline] || CONFIG.timelines.normal;
         const suppObj = CONFIG.supportPlans[state.supportPlan] || CONFIG.supportPlans.none;
 
-        // Generate Smart Suggestions
+        // Smart Suggestions & Budget Trim Tips
         const suggestions = [];
+
+        if (est.budgetVariance > 0) {
+            suggestions.push({
+                isWarning: true,
+                title: `⚠ Estimated cost exceeds client's budget by ₹${formatINR(est.budgetVariance)}`,
+                desc: 'Suggestions to reduce scope: (1) Switch to Simple Design (-₹5,000), (2) Keep initial pages to 1–5 (-₹6,000), (3) Use basic CMS instead of full dashboard, (4) Remove optional modules.'
+            });
+        }
+
         if (state.projectType === 'ecommerce' && !state.selectedFeatures.includes('admin_dashboard')) {
-            suggestions.push({ title: 'Admin Dashboard Recommended', desc: 'Since this is an E-commerce project, we strongly recommend adding an Admin Dashboard for managing products and order status.' });
+            suggestions.push({
+                isWarning: false,
+                title: 'Admin Dashboard Recommended',
+                desc: 'E-commerce projects usually require an Admin Dashboard for managing products, inventory & orders.'
+            });
         }
-        if (state.designStyle === 'simple' && ['corporate_website', 'saas', 'ecommerce'].includes(state.projectType)) {
-            suggestions.push({ title: 'Upgrade to Premium Design', desc: 'Upgrading to Modern or Premium Design will improve overall brand credibility and user conversion.' });
+
+        if (state.designStyle === 'simple' && ['corporate_website', 'hospital_website', 'ecommerce'].includes(state.projectType)) {
+            suggestions.push({
+                isWarning: false,
+                title: 'Upgrade to Modern Design',
+                desc: 'Modern or Premium Design will significantly improve brand credibility and customer conversions.'
+            });
         }
+
         if (state.supportPlan === 'none') {
-            suggestions.push({ title: 'Monthly Maintenance SLA', desc: 'Ongoing monthly support is recommended to handle security patches, content tweaks, and backups.' });
+            suggestions.push({
+                isWarning: false,
+                title: 'Monthly Maintenance SLA Recommended',
+                desc: 'Monthly maintenance is recommended for security updates, backups & uptime monitoring.'
+            });
         }
 
         let complexityLabel = 'Low Complexity';
         if (est.complexityScore >= 8) complexityLabel = 'High Complexity';
         else if (est.complexityScore >= 5) complexityLabel = 'Medium Complexity';
-        suggestions.push({ title: `Project Complexity Rating: ${est.complexityScore}/10`, desc: `Based on your selected features, user authentication, and CMS rules, this project is rated ${complexityLabel}.` });
-
-        // Check if budget variance exceeds client budget
-        let budgetMatchHtml = '';
-        if (est.budgetVariance > 0) {
-            suggestions.push({
-                title: `Estimate exceeds client target by ₹${formatINR(est.budgetVariance)}`,
-                desc: 'Suggestions to trim scope: (1) Switch to Simple Design, (2) Reduce non-essential features like Live Chat or Animations, (3) Keep initial page volume to 1–5 pages.'
-            });
-        }
+        suggestions.push({
+            isWarning: false,
+            title: `Project Complexity Rating: ${est.complexityScore}/10 (${complexityLabel})`,
+            desc: `Estimated internal effort: ${est.totalHours} Hours (${est.frontendHours}h Frontend, ${est.backendHours}h Backend, ${est.testingHours}h QA/Testing, ${est.deploymentHours}h Deployment).`
+        });
 
         el.estimateSummaryContainer.innerHTML = `
             <div class="summary-header-banner">
                 <div class="banner-left">
-                    <h2>Project Estimate & Proposal</h2>
-                    <p>Prepared for FlumenX Sales Team • ${projObj.name} (${bizObj.name} Scope)</p>
+                    <h2>FlumenX Client Quotation Summary</h2>
+                    <p>Local Agency Quote • ${projObj.name} (${bizObj.name}) • ${pageObj.name}</p>
                 </div>
                 <div class="banner-actions">
                     <button type="button" class="btn-secondary" id="saveEstimateTriggerBtn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        <span>Save Estimate</span>
+                        <span>Save Quote</span>
                     </button>
                     <button type="button" class="btn-primary" id="printQuoteBtn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -665,50 +709,50 @@
                 </div>
             </div>
 
-            <!-- 3 Quote Tiers for Sales Negotiation -->
+            <!-- 3 Estimate Level Tiers -->
             <div class="quote-tiers-grid">
                 <div class="quote-tier-card">
                     <div>
-                        <span class="tier-tag">Minimum Scope</span>
-                        <div class="tier-price">₹${formatINR(est.minQuote)}</div>
+                        <span class="tier-tag">Economy Scope</span>
+                        <div class="tier-price">₹${formatINR(est.economyQuote)}</div>
                     </div>
-                    <p class="tier-desc">Essential features & core pages only (-20% trimmed scope).</p>
+                    <p class="tier-desc">Core website & essential features only (Ideal for budget negotiation).</p>
                 </div>
                 <div class="quote-tier-card recommended">
                     <div>
                         <span class="tier-tag">Recommended Scope</span>
-                        <div class="tier-price">₹${formatINR(est.recQuote)}</div>
+                        <div class="tier-price">₹${formatINR(est.recommendedQuote)}</div>
                     </div>
-                    <p class="tier-desc">Optimal balance of features, design quality, and speed.</p>
+                    <p class="tier-desc">Optimal balance of design polish, requested features & speed.</p>
                 </div>
                 <div class="quote-tier-card">
                     <div>
                         <span class="tier-tag">Premium Scope</span>
-                        <div class="tier-price">₹${formatINR(est.premQuote)}</div>
+                        <div class="tier-price">₹${formatINR(est.premiumQuote)}</div>
                     </div>
-                    <p class="tier-desc">Fully loaded with premium motion, SLAs & cloud deployment.</p>
+                    <p class="tier-desc">Fully loaded with Premium Design, VPS deployment & SLAs.</p>
                 </div>
             </div>
 
             <div class="summary-cards-grid">
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Grand Total</span>
+                    <span class="kpi-lbl">Final Quotation</span>
                     <div class="kpi-val">₹${formatINR(est.grandTotal)}</div>
                     <div class="kpi-sub">${state.gstIncluded ? 'Includes 18% GST' : 'Excludes Tax'}</div>
                 </div>
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Target Budget</span>
+                    <span class="kpi-lbl">Client Budget Match</span>
                     <div class="kpi-val">${budgetObj.name}</div>
-                    <div class="kpi-sub">${est.budgetVariance <= 0 ? '✓ Within Target Budget' : `+₹${formatINR(est.budgetVariance)} Over Target`}</div>
+                    <div class="kpi-sub" style="color:${est.budgetVariance > 0 ? 'var(--warning-color)' : 'var(--success-color)'}">${est.budgetVariance <= 0 ? '✓ Within Target Budget' : `+₹${formatINR(est.budgetVariance)} Over Target`}</div>
                 </div>
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Est. Development Hours</span>
-                    <div class="kpi-val">${est.totalHours} Hours</div>
+                    <span class="kpi-lbl">Estimated Effort</span>
+                    <div class="kpi-val">${est.totalHours} Dev Hrs</div>
                     <div class="kpi-sub">Frontend: ${est.frontendHours}h | Backend: ${est.backendHours}h</div>
                 </div>
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Ongoing Support</span>
-                    <div class="kpi-val">₹${formatINR(est.monthlySupport)}/mo</div>
+                    <span class="kpi-lbl">Monthly SLA (Separate)</span>
+                    <div class="kpi-val">${est.monthlySupport > 0 ? `₹${formatINR(est.monthlySupport)}/mo` : 'None'}</div>
                     <div class="kpi-sub">${suppObj.name}</div>
                 </div>
             </div>
@@ -716,7 +760,7 @@
             <div class="complexity-box">
                 <div class="complexity-info">
                     <h4>Project Complexity Score</h4>
-                    <p>Calculated based on user auth, CMS frequency, APIs, and functional modules.</p>
+                    <p>Estimated effort: ${est.frontendHours}h Frontend • ${est.backendHours}h Backend • ${est.testingHours}h Testing • ${est.deploymentHours}h Deployment.</p>
                 </div>
                 <div class="complexity-meter-container">
                     <div class="complexity-track">
@@ -732,22 +776,28 @@
                     <span>Smart Suggestions & Sales Insights</span>
                 </h3>
                 ${suggestions.map(s => `
-                    <div class="suggestion-item">
-                        <span class="bullet">✓</span>
+                    <div class="suggestion-item ${s.isWarning ? 'warning' : ''}">
+                        <span class="bullet" style="color:${s.isWarning ? 'var(--danger-color)' : 'var(--success-color)'}">${s.isWarning ? '⚠' : '✓'}</span>
                         <div>
-                            <strong>${s.title}:</strong> ${s.desc}
+                            <strong style="color:${s.isWarning ? 'var(--danger-color)' : 'var(--text-primary)'}">${s.title}:</strong> ${s.desc}
                         </div>
                     </div>
                 `).join('')}
             </div>
 
+            <!-- Internal Controls: Discount & Profit Margin (Hidden on Client PDF) -->
             <div class="margin-control-box no-print">
                 <div style="flex:1">
-                    <span class="margin-title">Internal Profitability Calculator</span>
-                    <p style="font-size:0.8rem; color:var(--text-muted)">Internal view only (Hidden from client proposal printouts).</p>
+                    <span class="margin-title">Internal Sales Discount & Margin</span>
+                    <p style="font-size:0.8rem; color:var(--text-muted)">Internal tool only (Hidden from client PDF printouts).</p>
                 </div>
-                <div style="font-family:var(--font-mono); font-size:0.9rem">
-                    Labor Cost: ₹${formatINR(est.devCost)} | Margin: <span style="color:var(--success-color); font-weight:700">${est.marginPercent}%</span> (₹${formatINR(est.profitAmount)})
+                <div class="margin-controls">
+                    <span style="font-size:0.85rem; font-weight:600">Discount:</span>
+                    <input type="range" min="0" max="20" step="5" value="${state.discountPercent}" class="margin-slider" id="discountSlider">
+                    <span class="margin-val-badge" id="discountValBadge">${state.discountPercent}%</span>
+                </div>
+                <div style="font-family:var(--font-mono); font-size:0.85rem">
+                    Dev Cost: ₹${formatINR(est.devCost)} | Profit: <span style="color:var(--success-color); font-weight:700">₹${formatINR(est.profitAmount)} (${est.marginPercent}%)</span>
                 </div>
                 <div class="gst-toggle-wrapper">
                     <span style="font-size:0.85rem; font-weight:600">GST (18%)</span>
@@ -760,7 +810,7 @@
 
             <div class="itemized-table-card">
                 <div class="table-header">
-                    <h3>Itemized Cost & Scope Breakdown</h3>
+                    <h3>Itemized Quotation Breakdown</h3>
                     <span class="count-tag">${projObj.name}</span>
                 </div>
                 <table class="estimate-table">
@@ -773,14 +823,14 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>Base Project Cost</strong></td>
-                            <td>${projObj.name} (${projObj.hours || 0} base hrs)</td>
-                            <td class="col-price">₹${formatINR(est.basePrice)}</td>
+                            <td><strong>Base Website</strong></td>
+                            <td>${projObj.name} (${bizObj.name} package)</td>
+                            <td class="col-price">₹${formatINR(est.baseWebsiteCost)}</td>
                         </tr>
                         <tr>
-                            <td><strong>Page Volume</strong></td>
+                            <td><strong>Pages Volume</strong></td>
                             <td>${pageObj.name}</td>
-                            <td class="col-price">${est.pagePrice > 0 ? '₹' + formatINR(est.pagePrice) : 'Included'}</td>
+                            <td class="col-price">${est.pageCost > 0 ? '₹' + formatINR(est.pageCost) : 'Included'}</td>
                         </tr>
                         <tr>
                             <td><strong>Content Management</strong></td>
@@ -793,13 +843,13 @@
                             <td class="col-price">${(CONFIG.userAccountOptions[state.userAccounts]?.price || 0) > 0 ? '₹' + formatINR(CONFIG.userAccountOptions[state.userAccounts].price) : 'Included'}</td>
                         </tr>
                         <tr>
-                            <td><strong>Selected Features</strong></td>
-                            <td>${state.selectedFeatures.map(k => CONFIG.features[k]?.name).filter(Boolean).join(', ') || 'None selected'}</td>
-                            <td class="col-price">${est.featuresPrice > 0 ? '₹' + formatINR(est.featuresPrice) : 'Included'}</td>
+                            <td><strong>Features & Add-ons</strong></td>
+                            <td>${state.selectedFeatures.map(k => CONFIG.features[k]?.name).filter(Boolean).join(', ') || 'Contact Form (Included)'}</td>
+                            <td class="col-price">${est.featuresCostOnly > 0 ? '₹' + formatINR(est.featuresCostOnly) : 'Included'}</td>
                         </tr>
                         <tr>
                             <td><strong>Design Style</strong></td>
-                            <td>${designObj.name} (${designObj.mult}x multiplier)</td>
+                            <td>${designObj.name} style</td>
                             <td class="col-price">${est.designCost > 0 ? '₹' + formatINR(est.designCost) : 'Included'}</td>
                         </tr>
                         <tr>
@@ -808,12 +858,18 @@
                             <td class="col-price">${(CONFIG.animations[state.animationLevel]?.price || 0) > 0 ? '₹' + formatINR(CONFIG.animations[state.animationLevel].price) : 'Included'}</td>
                         </tr>
                         <tr>
-                            <td><strong>Deployment Setup</strong></td>
+                            <td><strong>Deployment & Server</strong></td>
                             <td>${(CONFIG.deployments[state.deployment] || {}).name}</td>
                             <td class="col-price">${est.deploymentCost > 0 ? '₹' + formatINR(est.deploymentCost) : 'Included'}</td>
                         </tr>
+                        ${est.discountAmount > 0 ? `
+                        <tr style="color:var(--success-color)">
+                            <td><strong>Sales Discount (-${est.discountPercent}%)</strong></td>
+                            <td>Special internal client concession</td>
+                            <td class="col-price">-₹${formatINR(est.discountAmount)}</td>
+                        </tr>` : ''}
                         <tr class="total-row">
-                            <td colspan="2">Subtotal Base Cost</td>
+                            <td colspan="2">Subtotal Project Cost</td>
                             <td class="col-price">₹${formatINR(est.finalBaseTotal)}</td>
                         </tr>
                         ${state.gstIncluded ? `
@@ -822,18 +878,31 @@
                             <td class="col-price">₹${formatINR(est.gstAmount)}</td>
                         </tr>` : ''}
                         <tr class="grand-total-row">
-                            <td colspan="2">Grand Total Estimate</td>
+                            <td colspan="2">Grand Total Quotation</td>
                             <td class="col-price">₹${formatINR(est.grandTotal)}</td>
                         </tr>
+                        ${est.monthlySupport > 0 ? `
+                        <tr style="background-color:rgba(99,102,241,0.05)">
+                            <td colspan="2"><strong>Monthly Maintenance SLA (Separate)</strong></td>
+                            <td class="col-price" style="color:var(--accent-primary)">₹${formatINR(est.monthlySupport)}/month</td>
+                        </tr>` : ''}
                     </tbody>
                 </table>
             </div>
         `;
 
-        // Attach event listeners
+        // Event Listeners for Summary Controls
+        const discountSlider = document.getElementById('discountSlider');
         const gstToggleInput = document.getElementById('gstToggleInput');
         const saveEstimateTriggerBtn = document.getElementById('saveEstimateTriggerBtn');
         const printQuoteBtn = document.getElementById('printQuoteBtn');
+
+        if (discountSlider) {
+            discountSlider.addEventListener('input', (e) => {
+                state.discountPercent = parseInt(e.target.value, 10);
+                renderFinalSummary();
+            });
+        }
 
         if (gstToggleInput) {
             gstToggleInput.addEventListener('change', (e) => {
@@ -901,7 +970,7 @@
             const row = document.createElement('div');
             row.className = 'setting-row';
 
-            const isMultCategory = (tabCategory === 'designStyles' || tabCategory === 'timelines' || tabCategory === 'businessSizes');
+            const isMultCategory = (tabCategory === 'timelines');
 
             row.innerHTML = `
                 <div class="setting-label">${item.name}</div>
@@ -941,13 +1010,13 @@
     }
 
     function resetToDefaultRates() {
-        if (confirm('Reset all rates back to default TVM low-based pricing?')) {
+        if (confirm('Reset all rates back to default local TVM agency rates?')) {
             CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
             localStorage.removeItem('flumenx_smart_config');
             renderAllGrids();
             updateCalculations();
             renderSettingsTabContent(currentSettingsTab);
-            alert('Rates reset to TVM defaults.');
+            alert('Rates reset to local TVM defaults.');
         }
     }
 
@@ -1013,7 +1082,6 @@
                 </div>
             `).join('');
 
-            // Attach click actions
             el.savedQuotesList.querySelectorAll('.load-quote-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const qId = btn.dataset.id;
@@ -1127,18 +1195,19 @@
                         totalSteps: 12,
                         projectType: 'business_website',
                         businessSize: 'small_business',
-                        budgeRange: 'b_30k_60k',
+                        budgeRange: 'b_25k_50k',
                         pageCount: 'p1_5',
                         cmsOption: 'occasionally',
                         userAccounts: 'none',
                         selectedFeatures: ['contact_form'],
                         designStyle: 'simple',
-                        animationLevel: 'minimal',
+                        animationLevel: 'none',
                         timeline: 'normal',
-                        deployment: 'flumenx',
+                        deployment: 'deploy_only',
                         supportPlan: 'none',
                         customNotes: '',
                         gstIncluded: true,
+                        discountPercent: 0,
                         profitMarginPercent: 30
                     };
 
