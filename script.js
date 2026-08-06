@@ -1,36 +1,42 @@
 /* ==========================================================================
    FLUMENX SMART WEBSITE PRICING CALCULATOR - LOGIC ENGINE
-   Local Digital Agency Pricing Philosophy (TVM, Kerala Rates)
+   Senior JavaScript Architect & Pricing Consultant Refactor
+   Thiruvananthapuram (TVM, Kerala) Digital Agency Pricing Model
    ========================================================================== */
 
 (function () {
     'use strict';
 
     /* --------------------------------------------------------------------------
-       1. DEFAULT LOCAL AGENCY TVM RATES CONFIGURATION
+       1. CONSTANTS & CONFIGURATION (TVM MID-TO-LOW MARKET PRICING)
        -------------------------------------------------------------------------- */
     const DEFAULT_CONFIG = {
+        // Step 1: Project Types (Base Prices)
         projectTypes: {
-            landing_page: { name: 'Landing Page', price: 10000, hours: 25, desc: 'Single high-converting page for marketing & lead gen', icon: 'layout' },
-            business_website: { name: 'Business Website', price: 22000, hours: 45, desc: 'Standard multi-page site for local business presentation', icon: 'globe' },
+            landing_page:      { name: 'Landing Page', price: 10000, hours: 25, desc: 'Single high-converting page for marketing & lead gen', icon: 'layout' },
+            business_website:  { name: 'Business Website', price: 22000, hours: 45, desc: 'Standard multi-page site for local business presentation', icon: 'globe' },
+            portfolio:         { name: 'Portfolio Website', price: 18000, hours: 35, desc: 'Personal or agency work showcase website', icon: 'layout' },
             corporate_website: { name: 'Corporate Website', price: 40000, hours: 70, desc: 'Multi-section corporate portal with compliance pages', icon: 'briefcase' },
-            hospital_website: { name: 'Hospital Website', price: 45000, hours: 130, desc: 'Medical clinic / hospital portal with doctor booking', icon: 'users', autoSelect: ['booking', 'notifications'] },
-            school_portal: { name: 'School Website', price: 40000, hours: 120, desc: 'Educational institution site with news, staff & notices', icon: 'layers', autoSelect: ['reports', 'notifications'] },
-            ecommerce: { name: 'E-commerce Store', price: 60000, hours: 110, desc: 'Online store with catalog, cart & payment gateway', icon: 'shopping-bag', autoSelect: ['payment_gateway', 'store', 'admin_dashboard'] },
-            booking_website: { name: 'Booking Platform', price: 50000, hours: 100, desc: 'Appointment scheduling & reservation engine', icon: 'calendar', autoSelect: ['booking', 'payment_gateway', 'notifications'] },
-            crm: { name: 'CRM System', price: 100000, hours: 160, desc: 'Lead pipeline management & client CRM portal', icon: 'cpu', autoSelect: ['admin_dashboard', 'reports', 'notifications'] },
-            erp: { name: 'ERP System', price: 180000, hours: 220, desc: 'Resource planning for inventory, HR & operations', icon: 'layers', autoSelect: ['admin_dashboard', 'reports', 'notifications'] },
-            custom_webapp: { name: 'Custom Web Application', price: 140000, hours: 180, desc: 'Tailor-made web app built to custom business workflow', icon: 'code' }
+            hospital_website:  { name: 'Hospital Website', price: 45000, hours: 130, desc: 'Medical clinic / hospital portal with doctor booking', icon: 'users', autoSelect: ['booking', 'notifications'] },
+            school_portal:     { name: 'School Website', price: 40000, hours: 120, desc: 'Educational institution site with news, staff & notices', icon: 'layers', autoSelect: ['reports', 'notifications'] },
+            booking_website:   { name: 'Booking Platform', price: 55000, hours: 100, desc: 'Appointment scheduling & reservation engine', icon: 'calendar', autoSelect: ['booking', 'payment_gateway', 'notifications'] },
+            ecommerce:         { name: 'E-commerce Store', price: 60000, hours: 110, desc: 'Online store with catalog, cart & payment gateway', icon: 'shopping-bag', autoSelect: ['payment_gateway', 'cart', 'admin_dashboard'] },
+            crm:               { name: 'CRM System', price: 100000, hours: 160, desc: 'Lead pipeline management & client CRM portal', icon: 'cpu', autoSelect: ['admin_dashboard', 'reports', 'notifications'] },
+            erp:               { name: 'ERP System', price: 180000, hours: 220, desc: 'Resource planning for inventory, HR & operations', icon: 'layers', autoSelect: ['admin_dashboard', 'reports', 'notifications'] },
+            marketplace:       { name: 'Marketplace', price: 150000, hours: 230, desc: 'Multi-vendor e-commerce or booking marketplace', icon: 'store', autoSelect: ['payment_gateway', 'cart', 'admin_dashboard'] },
+            custom_webapp:     { name: 'Custom Web Application', price: 120000, hours: 180, desc: 'Tailor-made web app built to custom business workflow', icon: 'code' }
         },
 
+        // Business Size (Informational / Scope Scale)
         businessSizes: {
             individual: { name: 'Individual', price: 0, desc: 'Personal portfolio, freelancer, or solo practitioner' },
             startup: { name: 'Startup', price: 0, desc: 'Early-stage venture or emerging local brand' },
-            small_business: { name: 'Small Business', price: 2000, desc: 'Local business, clinic, or service shop (+₹2,000)' },
+            small_business: { name: 'Small Business', price: 0, desc: 'Local business, clinic, or service shop' },
             medium_business: { name: 'Medium Business', price: 5000, desc: 'Established company with multi-team workflows (+₹5,000)' },
             large_company: { name: 'Large Company', price: 10000, desc: 'Corporate enterprise requiring SLA & scale (+₹10,000)' }
         },
 
+        // Client Expected Budget (For Budget Matching Validation)
         budgetRanges: {
             b_under_25k: { name: 'Under ₹25,000', target: 25000, desc: 'Economy essential budget' },
             b_25k_50k: { name: '₹25,000 – ₹50,000', target: 50000, desc: 'Standard local business budget' },
@@ -39,85 +45,126 @@
             b_1l_plus: { name: '₹1 Lakh+', target: 150000, desc: 'Custom enterprise budget' }
         },
 
+        // Step 4: Page Volumes
         pageCounts: {
             p1_5: { name: '1–5 Pages', price: 0, hours: 0, desc: 'Included in base price' },
-            p6_10: { name: '6–10 Pages', price: 6000, hours: 10, desc: 'Avg +₹1,200 per page' },
-            p11_20: { name: '11–20 Pages', price: 12000, hours: 20, desc: 'Avg +₹1,200 per page' },
-            p20_plus: { name: '20+ Pages', price: 25000, hours: 45, desc: 'Custom high-volume architecture' }
+            p6_10: { name: '6–10 Pages', price: 5000, hours: 10, desc: '+₹5,000 for extra layouts' },
+            p11_15: { name: '11–15 Pages', price: 10000, hours: 20, desc: '+₹10,000 for multi-section layouts' },
+            p16_20: { name: '16–20 Pages', price: 15000, hours: 30, desc: '+₹15,000 for high-volume content' },
+            p20_plus: { name: '20+ Pages', price: 20000, hours: 45, desc: '+₹20,000 for enterprise volume' }
         },
 
+        // Step 5: Admin Panel & CMS Options
         cmsOptions: {
-            no: { name: 'No', price: 0, hours: 0, desc: 'Content updated directly in code' },
-            occasionally: { name: 'Yes, occasionally', price: 2000, hours: 5, desc: 'Basic CMS for blog or news updates' },
-            frequently: { name: 'Yes, frequently', price: 5000, hours: 10, desc: 'Full CMS dashboard for daily team updates' }
+            none: { name: 'None', price: 0, hours: 0, desc: 'Static site updated in source code (₹0)' },
+            basic: { name: 'Basic Admin', price: 5000, hours: 5, desc: 'Basic CMS for news, blogs & basic pages (+₹5,000)' },
+            advanced: { name: 'Advanced Admin', price: 10000, hours: 12, desc: 'Multi-module admin panel with media manager (+₹10,000)' },
+            custom_dashboard: { name: 'Custom Dashboard', price: 20000, hours: 25, desc: 'Full custom control panel & business analytics (+₹20,000)' }
         },
 
+        // Step 6: Authentication & User Accounts
         userAccountOptions: {
-            none: { name: 'No', price: 0, hours: 0, desc: 'Public website without logins' },
-            customers: { name: 'Customers Only', price: 4000, hours: 8, desc: 'Client login & registration portal' },
-            staff: { name: 'Staff Only', price: 5000, hours: 10, desc: 'Internal employee login & role rules' },
-            both: { name: 'Both Customers & Staff', price: 8000, hours: 18, desc: 'Multi-role authentication system' }
+            none: { name: 'None', price: 0, hours: 0, desc: 'Public website without logins (₹0)' },
+            login: { name: 'Login Only', price: 3000, hours: 5, desc: 'Existing user login & session auth (+₹3,000)' },
+            login_register: { name: 'Login + Register', price: 5000, hours: 8, desc: 'User registration, login & password reset (+₹5,000)' },
+            rbac: { name: 'RBAC (Role-Based)', price: 12000, hours: 18, desc: 'Multi-role permission matrix & staff logins (+₹12,000)' }
         },
 
+        // Step 7: Granular Features List
         features: {
-            contact_form: { name: 'Contact Form', price: 0, hours: 2, desc: 'Included in base package', icon: 'code' },
-            blog: { name: 'Blog', price: 2000, hours: 5, desc: 'Articles & publishing CMS', icon: 'layout' },
-            gallery: { name: 'Photo Gallery', price: 2000, hours: 4, desc: 'Lightbox media grid', icon: 'globe' },
-            search: { name: 'Instant Search', price: 2000, hours: 4, desc: 'Live instant search filter', icon: 'code' },
-            whatsapp: { name: 'WhatsApp Direct', price: 1000, hours: 2, desc: 'Click to chat lead link', icon: 'code' },
-            maps: { name: 'Google Maps API', price: 1500, hours: 3, desc: 'Location map pins setup', icon: 'globe' },
-            chat: { name: 'Live Chat Support', price: 2000, hours: 4, desc: 'Live chat support widget', icon: 'code' },
-            reviews: { name: 'Reviews & Ratings', price: 2500, hours: 4, desc: 'Customer star reviews', icon: 'users' },
-            notifications: { name: 'Notifications', price: 3000, hours: 5, desc: 'Email / SMS alert system', icon: 'code' },
-            reports: { name: 'Reports & Export', price: 5000, hours: 8, desc: 'PDF / Excel exports & metrics', icon: 'layers' },
-            multilang: { name: 'Multi-language (i18n)', price: 6000, hours: 10, desc: 'Multi-lingual content engine', icon: 'globe' },
-            payment_gateway: { name: 'Online Payments', price: 8000, hours: 10, desc: 'Razorpay / Stripe / UPI integration', icon: 'shopping-bag' },
-            booking: { name: 'Booking Engine', price: 8000, hours: 12, desc: 'Calendar reservation slot engine', icon: 'calendar' },
-            api_integration: { name: 'Custom API Integration', price: 8000, hours: 12, desc: 'Connect 3rd-party REST APIs', icon: 'code' },
-            admin_dashboard: { name: 'Admin Dashboard', price: 10000, hours: 18, desc: 'Management control panel', icon: 'cpu' },
-            store: { name: 'Online Store Engine', price: 10000, hours: 15, desc: 'Product catalog & cart drawer', icon: 'store' }
+            // Features Included by Default in Every Package (₹0)
+            responsive_design: { name: 'Responsive Design', price: 0, hours: 0, desc: 'Included in base package', icon: 'layout', defaultIncluded: true },
+            contact_form:      { name: 'Contact Form', price: 0, hours: 0, desc: 'Included in base package', icon: 'code', defaultIncluded: true },
+            mobile_opt:        { name: 'Mobile Optimization', price: 0, hours: 0, desc: 'Included in base package', icon: 'globe', defaultIncluded: true },
+            ssl_cert:          { name: 'SSL Security', price: 0, hours: 0, desc: 'Included in base package', icon: 'code', defaultIncluded: true },
+            basic_seo_feat:    { name: 'Basic SEO & Sitemap', price: 0, hours: 0, desc: 'Included in base package', icon: 'code', defaultIncluded: true },
+            whatsapp_btn:      { name: 'WhatsApp Button', price: 0, hours: 0, desc: 'Included in base package', icon: 'code', defaultIncluded: true },
+            analytics:         { name: 'Analytics Setup', price: 0, hours: 0, desc: 'Included in base package', icon: 'layers', defaultIncluded: true },
+
+            // Incremental Add-on Features
+            blog:            { name: 'Blog', price: 2000, hours: 5, desc: 'Articles & publishing CMS (+₹2,000)', icon: 'layout' },
+            portfolio_feat:  { name: 'Portfolio Showcase', price: 2000, hours: 4, desc: 'Filterable work showcase (+₹2,000)', icon: 'layout' },
+            gallery:         { name: 'Photo Gallery', price: 1500, hours: 3, desc: 'Lightbox media grid (+₹1,500)', icon: 'globe' },
+            search:          { name: 'Instant Search', price: 2000, hours: 4, desc: 'Live instant search filter (+₹2,000)', icon: 'code' },
+            whatsapp:        { name: 'WhatsApp Direct Chat', price: 1000, hours: 2, desc: 'Smart WhatsApp lead link (+₹1,000)', icon: 'code' },
+            google_maps:     { name: 'Google Maps API', price: 1000, hours: 2, desc: 'Interactive Google map location (+₹1,000)', icon: 'globe' },
+            email:           { name: 'Email Notifications', price: 2000, hours: 3, desc: 'Automated email alerts (+₹2,000)', icon: 'code' },
+            live_chat:       { name: 'Live Chat Widget', price: 2000, hours: 4, desc: 'Live chat support widget (+₹2,000)', icon: 'code' },
+            reviews:         { name: 'Reviews & Ratings', price: 2000, hours: 4, desc: 'Customer star reviews (+₹2,000)', icon: 'users' },
+            dark_mode:       { name: 'Dark Mode Toggle', price: 2000, hours: 3, desc: 'Theme toggle & dark mode (+₹2,000)', icon: 'code' },
+            wishlist:        { name: 'Wishlist Feature', price: 2000, hours: 4, desc: 'Saved favorites wishlist (+₹2,000)', icon: 'shopping-bag' },
+            notifications:   { name: 'Push / SMS Alerts', price: 3000, hours: 5, desc: 'SMS / Push alert system (+₹3,000)', icon: 'code' },
+            file_upload:     { name: 'File Upload System', price: 3000, hours: 5, desc: 'Document & media attachment upload (+₹3,000)', icon: 'layers' },
+            cart:            { name: 'Shopping Cart', price: 5000, hours: 8, desc: 'Shopping cart drawer & checkout (+₹5,000)', icon: 'shopping-bag' },
+            reports:         { name: 'Reports & Export', price: 5000, hours: 8, desc: 'PDF / Excel exports & metrics (+₹5,000)', icon: 'layers' },
+            multilingual:    { name: 'Multilingual (i18n)', price: 6000, hours: 10, desc: 'Multi-language content engine (+₹6,000)', icon: 'globe' },
+            payment_gateway: { name: 'Payment Gateway', price: 8000, hours: 10, desc: 'Razorpay / UPI / Stripe checkout (+₹8,000)', icon: 'shopping-bag' },
+            booking:         { name: 'Booking Engine', price: 8000, hours: 12, desc: 'Calendar reservation slot engine (+₹8,000)', icon: 'calendar' },
+            api_integration: { name: 'API Integration', price: 8000, hours: 12, desc: 'Connect 3rd-party REST APIs (+₹8,000)', icon: 'code' }
         },
 
+        // Step 8: Fixed Design Pricing (Additive, NO Multipliers!)
         designStyles: {
-            simple: { name: 'Simple', price: 0, hours: 0, desc: 'Clean, minimal standard UI design (+₹0)' },
-            modern: { name: 'Modern', price: 5000, hours: 10, desc: 'Sleek custom component styling (+₹5,000)' },
-            premium: { name: 'Premium', price: 10000, hours: 20, desc: 'Linear / Framer level polished UI (+₹10,000)' },
-            luxury: { name: 'Luxury', price: 20000, hours: 35, desc: 'Bespoke motion & high-end art direction (+₹20,000)' }
+            basic: { name: 'Basic Design', price: 0, hours: 0, desc: 'Clean, minimal standard UI design (+₹0)' },
+            modern: { name: 'Modern Design', price: 5000, hours: 10, desc: 'Sleek custom component styling (+₹5,000)' },
+            premium: { name: 'Premium Design', price: 10000, hours: 20, desc: 'Linear / Framer level polished UI (+₹10,000)' },
+            luxury: { name: 'Luxury Design', price: 20000, hours: 35, desc: 'Bespoke motion & high-end art direction (+₹20,000)' }
         },
 
+        // Step 9: Fixed Animation Pricing (Additive, NO Multipliers!)
         animations: {
             none: { name: 'None', price: 0, hours: 0, desc: 'Standard static transitions (+₹0)' },
-            basic: { name: 'Basic', price: 2000, hours: 3, desc: 'Smooth fade-in & hover effects (+₹2,000)' },
-            advanced: { name: 'Advanced', price: 5000, hours: 8, desc: 'Scroll triggers & motion graphics (+₹5,000)' },
-            premium: { name: 'Premium', price: 10000, hours: 18, desc: 'Advanced WebGL & interactive motion (+₹10,000)' }
+            basic: { name: 'Basic Motion', price: 2000, hours: 3, desc: 'Smooth fade-in & hover effects (+₹2,000)' },
+            advanced: { name: 'Advanced Motion', price: 5000, hours: 8, desc: 'Scroll triggers & motion graphics (+₹5,000)' },
+            premium: { name: 'Premium Motion', price: 10000, hours: 18, desc: 'Advanced WebGL & interactive motion (+₹10,000)' }
         },
 
+        // Step 10: Fixed SEO Scope
         seoLevels: {
-            basic: { name: 'Basic SEO', price: 0, hours: 2, desc: 'Included in base package' },
+            basic: { name: 'Basic SEO', price: 0, hours: 2, desc: 'Included in base package (+₹0)' },
             advanced: { name: 'Advanced SEO', price: 3000, hours: 6, desc: 'Schema markup & Speed optimization (+₹3,000)' },
             enterprise: { name: 'Enterprise SEO', price: 8000, hours: 15, desc: 'Programmatic SEO & multi-region setup (+₹8,000)' }
         },
 
+        // Step 11: Timelines & Urgency (Informational / Delivery Pace)
         timelines: {
-            flexible: { name: 'Flexible', mult: 0.95, desc: 'Economy pace (-5% discount)' },
+            flexible: { name: 'Flexible', mult: 1.0, desc: 'Standard relaxed pace' },
             normal: { name: 'Normal', mult: 1.0, desc: 'Standard 3–5 weeks delivery' },
-            priority: { name: 'Priority', mult: 1.10, desc: 'Fast-track 2–3 weeks (+10%)' },
-            urgent: { name: 'Urgent', mult: 1.20, desc: 'Rush 1–2 weeks (+20% surcharge)' }
+            priority: { name: 'Priority', mult: 1.0, desc: 'Fast-track delivery (Priority queue)' },
+            urgent: { name: 'Urgent', mult: 1.0, desc: 'Rush delivery timeline' }
         },
 
+        // Step 12: Deployment & Server Hosting
         deployments: {
-            client: { name: 'Client', price: 0, hours: 0, desc: 'Client handles server & hosting (+₹0)' },
-            deploy_only: { name: 'Deployment Only', price: 2000, hours: 2, desc: 'Deploy to Vercel / Hostinger / VPS (+₹2,000)' },
-            server_setup: { name: 'VPS Setup', price: 5000, hours: 6, desc: 'Linux VPS, SSL & Nginx setup (+₹5,000)' },
-            cloud: { name: 'Cloud Infrastructure', price: 10000, hours: 14, desc: 'AWS / GCP cloud setup & CI/CD (+₹10,000)' }
+            none: { name: 'None', price: 0, hours: 0, desc: 'Client handles server & hosting (+₹0)' },
+            deployment: { name: 'Deployment', price: 2000, hours: 2, desc: 'Deploy to Vercel / Hostinger / CPanel (+₹2,000)' },
+            vps_setup: { name: 'VPS Setup', price: 5000, hours: 6, desc: 'Linux VPS, SSL & Nginx setup (+₹5,000)' },
+            cloud_infra: { name: 'Cloud Infrastructure', price: 10000, hours: 14, desc: 'AWS / GCP cloud setup & CI/CD (+₹10,000)' }
         },
 
+        // Step 13: Maintenance SLA (DISPLAYED SEPARATELY, NOT INCLUDED IN PROJECT COST)
         supportPlans: {
             none: { name: 'No Maintenance', price: 0, hours: 0, desc: 'No monthly maintenance contract' },
             basic: { name: 'Basic Support', price: 1500, hours: 3, desc: '₹1,500/mo - Security updates & bug fixes' },
             standard: { name: 'Standard Support', price: 3000, hours: 8, desc: '₹3,000/mo - Backups, content tweaks & monitoring' },
             premium: { name: 'Premium Support', price: 6000, hours: 16, desc: '₹6,000/mo - 24/7 priority SLA & dedicated support' }
         }
+    };
+
+    // Realistic TVM Market Upper Ceilings (Prevents Unrealistic Pricing Explosions)
+    const MARKET_CAPS = {
+        landing_page: 18000,
+        portfolio: 35000,
+        business_website: 55000,
+        hospital_website: 75000,
+        school_portal: 70000,
+        corporate_website: 90000,
+        booking_website: 80000,
+        ecommerce: 100000,
+        crm: 200000,
+        marketplace: 250000,
+        custom_webapp: 220000,
+        erp: 350000
     };
 
     let CONFIG = loadActiveConfig();
@@ -143,17 +190,18 @@
         businessSize: 'small_business',
         budgeRange: 'b_25k_50k',
         pageCount: 'p1_5',
-        cmsOption: 'occasionally',
+        cmsOption: 'basic',
         userAccounts: 'none',
-        selectedFeatures: ['contact_form'],
-        designStyle: 'simple',
+        selectedFeatures: ['contact_form', 'responsive_design', 'whatsapp'],
+        designStyle: 'basic',
         animationLevel: 'none',
+        seoLevel: 'basic',
         timeline: 'normal',
-        deployment: 'deploy_only',
+        deployment: 'deployment',
         supportPlan: 'none',
         customNotes: '',
         gstIncluded: true,
-        discountPercent: 0,
+        discountPercent: 0, // Manual Discount (0% to 30%)
         profitMarginPercent: 30
     };
 
@@ -274,7 +322,6 @@
     }
 
     function onProjectTypeSelect(selectedTypeKey) {
-        // Auto-recommend features based on Project Type
         const item = CONFIG.projectTypes[selectedTypeKey];
         if (item && item.autoSelect) {
             item.autoSelect.forEach(featKey => {
@@ -293,13 +340,9 @@
             const item = items[key];
             const isSel = isSelectedFn(key);
 
-            let priceText = '';
-            if (item.price !== undefined) {
-                priceText = item.price > 0 ? `+₹${formatINR(item.price)}` : 'Included';
-            } else if (item.mult !== undefined) {
-                priceText = item.mult === 1.0 ? '1.0x Rush' : `${item.mult}x Rush`;
-            } else if (item.target !== undefined) {
-                priceText = 'Target Budget';
+            let priceText = 'Included';
+            if (item.price !== undefined && item.price > 0) {
+                priceText = `+₹${formatINR(item.price)}`;
             }
 
             const iconHtml = item.icon ? ICONS[item.icon] : ICONS.layout;
@@ -382,16 +425,16 @@
         'Project Type',
         'Business Size',
         'Client Budget',
-        'Page Count',
-        'Content Management',
-        'User Accounts',
-        'Online Features',
-        'Design Style',
+        'Page Volume',
+        'Admin Panel',
+        'Authentication',
+        'Selected Features',
+        'Design Upgrade',
         'Animations',
         'Timeline',
-        'Deployment',
-        'Support SLA',
-        'Executive Estimate'
+        'Hosting & Deployment',
+        'Maintenance SLA',
+        'Final Executive Estimate'
     ];
 
     function goToStep(stepNum) {
@@ -404,23 +447,20 @@
     function updateWizardView() {
         const step = state.currentStep;
 
-        // Hide all step panels
         document.querySelectorAll('.step-panel').forEach(panel => {
             panel.classList.remove('active');
         });
 
-        // Show active panel
         const currentPanel = document.getElementById(`step-${step}`);
         if (currentPanel) {
             currentPanel.classList.add('active');
         }
 
-        // Progress bar updates
         if (step === 1) {
             el.progressBarWrapper.style.display = 'none';
         } else {
             el.progressBarWrapper.style.display = 'block';
-            const displayStep = step - 1; // 1 to 12
+            const displayStep = step - 1;
             const maxSteps = 12;
             const percent = Math.min(Math.round((displayStep / maxSteps) * 100), 100);
 
@@ -430,14 +470,13 @@
             el.progressFill.style.width = `${percent}%`;
         }
 
-        // Footer buttons
         if (step === 1) {
             el.wizardFooter.style.display = 'none';
         } else if (step === 14) {
             el.wizardFooter.style.display = 'flex';
             el.prevStepBtn.disabled = false;
             el.nextStepBtn.style.display = 'none';
-            el.footerStepIndicator.textContent = 'Estimate Generated';
+            el.footerStepIndicator.textContent = 'Quotation Generated';
             renderFinalSummary();
         } else {
             el.wizardFooter.style.display = 'flex';
@@ -454,104 +493,148 @@
     }
 
     /* --------------------------------------------------------------------------
-       7. LOCAL TVM AGENCY PRICING CALCULATOR ENGINE (FIXED ADDITIVE MODEL)
+       7. REFACTORED PRICING ENGINE (PURE ADDITIVE MODEL WITH SMART BUNDLES & MARKET CAPS)
        -------------------------------------------------------------------------- */
     function calculateEstimate() {
         const proj = CONFIG.projectTypes[state.projectType] || CONFIG.projectTypes.business_website;
         const biz = CONFIG.businessSizes[state.businessSize] || CONFIG.businessSizes.small_business;
         const page = CONFIG.pageCounts[state.pageCount] || CONFIG.pageCounts.p1_5;
-        const cms = CONFIG.cmsOptions[state.cmsOption] || CONFIG.cmsOptions.no;
+        const cms = CONFIG.cmsOptions[state.cmsOption] || CONFIG.cmsOptions.basic;
         const userAcc = CONFIG.userAccountOptions[state.userAccounts] || CONFIG.userAccountOptions.none;
-        const design = CONFIG.designStyles[state.designStyle] || CONFIG.designStyles.simple;
+        const design = CONFIG.designStyles[state.designStyle] || CONFIG.designStyles.basic;
         const anim = CONFIG.animations[state.animationLevel] || CONFIG.animations.none;
-        const time = CONFIG.timelines[state.timeline] || CONFIG.timelines.normal;
-        const deploy = CONFIG.deployments[state.deployment] || CONFIG.deployments.deploy_only;
+        const seo = CONFIG.seoLevels[state.seoLevel] || CONFIG.seoLevels.basic;
+        const deploy = CONFIG.deployments[state.deployment] || CONFIG.deployments.deployment;
         const support = CONFIG.supportPlans[state.supportPlan] || CONFIG.supportPlans.none;
         const budgetObj = CONFIG.budgetRanges[state.budgeRange] || CONFIG.budgetRanges.b_25k_50k;
 
-        // Base Website = Base Project Type + Business Size increment
+        // 1. Base Project Price (+ Business Size add-on if enterprise)
         let baseWebsiteCost = proj.price + (biz.price || 0);
-        let baseHours = proj.hours || 0;
 
-        // Page volume cost
-        let pageCost = page.price || 0;
+        // 2. Extra Pages Cost
+        let extraPagesCost = page.price || 0;
 
-        // Features sum
-        let featuresCost = 0;
-        let featuresHours = 0;
-        state.selectedFeatures.forEach(featKey => {
+        // 3. Admin Panel Cost
+        let adminPanelCost = cms.price || 0;
+
+        // 4. Authentication Cost
+        let authCost = userAcc.price || 0;
+
+        // 5. Features Pricing & Smart Bundles Rule Engine
+        const selected = state.selectedFeatures || [];
+
+        // Check Content Management Bundle (Blog + Portfolio + Gallery)
+        const cmsModules = ['blog', 'portfolio_feat', 'gallery'];
+        const selectedCmsModules = selected.filter(k => cmsModules.includes(k));
+        const isCmsBundleApplied = selectedCmsModules.length >= 2;
+
+        // Check E-commerce Bundle (Cart + Wishlist + Payment Gateway)
+        const ecomModules = ['cart', 'wishlist', 'payment_gateway'];
+        const selectedEcomModules = selected.filter(k => ecomModules.includes(k));
+        const isEcomBundleApplied = selectedEcomModules.length >= 2;
+
+        let rawFeaturesSum = 0;
+        let bundledFeaturesCost = 0;
+        let bundleSavings = 0;
+        let featureBreakdownLabels = [];
+
+        selected.forEach(featKey => {
             const feat = CONFIG.features[featKey];
-            if (feat) {
-                featuresCost += (feat.price || 0);
-                featuresHours += (feat.hours || 0);
+            if (!feat) return;
+
+            // Skip default included features from price sum
+            if (feat.defaultIncluded || feat.price === 0) {
+                return;
+            }
+
+            rawFeaturesSum += feat.price;
+
+            // Apply Smart Bundles logic
+            if (isCmsBundleApplied && cmsModules.includes(featKey)) {
+                // Handled in bundle sum
+            } else if (isEcomBundleApplied && ecomModules.includes(featKey)) {
+                // Handled in bundle sum
+            } else {
+                bundledFeaturesCost += feat.price;
+                featureBreakdownLabels.push(`${feat.name} (+₹${formatINR(feat.price)})`);
             }
         });
 
-        // Additional scope addons (CMS + User Accounts + Features + Animations)
-        let totalFeaturesCost = featuresCost + (cms.price || 0) + (userAcc.price || 0) + (anim.price || 0);
+        if (isCmsBundleApplied) {
+            bundledFeaturesCost += 5000;
+            featureBreakdownLabels.push('Content Management Package (+₹5,000)');
+        }
 
-        // Fixed Design cost & Deployment cost
+        if (isEcomBundleApplied) {
+            bundledFeaturesCost += 12000;
+            featureBreakdownLabels.push('E-commerce Package (+₹12,000)');
+        }
+
+        bundleSavings = Math.max(rawFeaturesSum - bundledFeaturesCost, 0);
+
+        // 6. Fixed Design Upgrade
         let designCost = design.price || 0;
-        let deploymentCost = deploy.price || 0;
 
-        // Subtotal before timeline surcharge and discount
-        let rawSubtotal = baseWebsiteCost + pageCost + totalFeaturesCost + designCost + deploymentCost;
+        // 7. Fixed Animation Upgrade
+        let animationCost = anim.price || 0;
 
-        // Apply Timeline Rush multiplier if Priority or Urgent
-        let timeMult = time.mult !== undefined ? time.mult : 1.0;
-        let timelineSubtotal = Math.round(rawSubtotal * timeMult);
+        // 8. Fixed SEO Upgrade
+        let seoCost = seo.price || 0;
 
-        // Apply Internal Sales Discount
-        let discountPercent = state.discountPercent || 0;
-        let discountAmount = Math.round(timelineSubtotal * (discountPercent / 100));
-        let finalBaseTotal = timelineSubtotal - discountAmount;
+        // 9. Hosting & Deployment
+        let hostingCost = deploy.price || 0;
 
-        // Dev Hours (strictly internal effort planning - NOT multiplied by rate)
-        let totalHours = (baseHours + (page.hours || 0) + (cms.hours || 0) + (userAcc.hours || 0) + featuresHours + (design.hours || 0) + (anim.hours || 0) + (deploy.hours || 0));
-        let frontendHours = Math.round(totalHours * 0.50);
-        let backendHours = Math.round(totalHours * 0.30);
-        let testingHours = Math.round(totalHours * 0.12);
-        let deploymentHours = Math.max(Math.round(totalHours * 0.08), 2);
+        // Dev Hours (INFORMATIONAL EFFORT PLANNING ONLY - NEVER MULTIPLIES PRICE)
+        let totalHours = (proj.hours || 0) + (page.hours || 0) + (cms.hours || 0) + (userAcc.hours || 0) + (design.hours || 0) + (anim.hours || 0) + (seo.hours || 0) + (deploy.hours || 0);
+        selected.forEach(k => {
+            if (CONFIG.features[k]) totalHours += (CONFIG.features[k].hours || 0);
+        });
 
-        // GST Tax (18%)
+        // 10. Raw Additive Subtotal
+        let rawAdditiveTotal = baseWebsiteCost + extraPagesCost + adminPanelCost + authCost + bundledFeaturesCost + designCost + animationCost + seoCost + hostingCost;
+
+        // Market Cap Ceiling Enforcement
+        let maxAllowedCap = MARKET_CAPS[state.projectType] || 250000;
+        let isMarketCapExceeded = rawAdditiveTotal > maxAllowedCap;
+        let finalUnDiscountedTotal = isMarketCapExceeded ? maxAllowedCap : rawAdditiveTotal;
+
+        // 11. Manual Discount Slider (0% to 30%)
+        let discountPercent = Math.min(Math.max(state.discountPercent || 0, 0), 30);
+        let discountAmount = Math.round(finalUnDiscountedTotal * (discountPercent / 100));
+        let finalBaseTotal = finalUnDiscountedTotal - discountAmount;
+
+        // 12. Optional GST Tax (18%)
         let gstAmount = state.gstIncluded ? Math.round(finalBaseTotal * 0.18) : 0;
         let grandTotal = finalBaseTotal + gstAmount;
 
-        // Client Target Budget Comparison
+        // Client Target Budget Validation
         let clientTargetBudget = budgetObj.target || 50000;
         let budgetVariance = grandTotal - clientTargetBudget; // > 0 means exceeds budget
 
-        // Project Complexity Rating (1-10)
-        let complexityScore = 2;
-        if (state.selectedFeatures.length >= 4) complexityScore += 2;
-        if (state.selectedFeatures.length >= 8) complexityScore += 2;
-        if (state.userAccounts !== 'none') complexityScore += 1;
-        if (state.cmsOption === 'frequently') complexityScore += 1;
-        if (['ecommerce', 'crm', 'erp', 'custom_webapp'].includes(state.projectType)) complexityScore += 2;
-        complexityScore = Math.min(Math.max(complexityScore, 1), 10);
-
-        // 3 Estimate Quotation Levels
-        let economyQuote = Math.round(grandTotal * 0.82); // Economy scope (~18% lower)
-        let recommendedQuote = Math.round(grandTotal);
-        let premiumQuote = Math.round(grandTotal * 1.25); // Premium scope (+25%)
-
-        // Internal Profit Calculation (Dev Cost vs Selling Price)
-        let devCost = Math.round(finalBaseTotal * 0.55); // 55% internal labor cost
-        let profitAmount = finalBaseTotal - devCost;
-        let marginPercent = finalBaseTotal > 0 ? Math.round((profitAmount / finalBaseTotal) * 100) : 0;
+        // Internal Profit Calculation (Labor Cost vs Selling Price)
+        let devLaborCost = Math.round(finalBaseTotal * 0.50); // 50% internal labor allocation
+        let internalProfitAmount = finalBaseTotal - devLaborCost;
+        let marginPercent = finalBaseTotal > 0 ? Math.round((internalProfitAmount / finalBaseTotal) * 100) : 0;
 
         return {
             baseWebsiteCost,
-            pageCost,
-            totalFeaturesCost,
-            featuresCostOnly: featuresCost,
-            cmsCost: cms.price || 0,
-            userAccCost: userAcc.price || 0,
-            animCost: anim.price || 0,
+            extraPagesCost,
+            adminPanelCost,
+            authCost,
+            bundledFeaturesCost,
+            rawFeaturesSum,
+            bundleSavings,
+            isCmsBundleApplied,
+            isEcomBundleApplied,
+            featureBreakdownLabels,
             designCost,
-            deploymentCost,
-            rawSubtotal,
-            timelineSubtotal,
+            animationCost,
+            seoCost,
+            hostingCost,
+            rawAdditiveTotal,
+            maxAllowedCap,
+            isMarketCapExceeded,
+            finalUnDiscountedTotal,
             discountPercent,
             discountAmount,
             finalBaseTotal,
@@ -559,18 +642,10 @@
             grandTotal,
             monthlySupport: support.price || 0,
             totalHours,
-            frontendHours,
-            backendHours,
-            testingHours,
-            deploymentHours,
             clientTargetBudget,
             budgetVariance,
-            complexityScore,
-            economyQuote,
-            recommendedQuote,
-            premiumQuote,
-            devCost,
-            profitAmount,
+            devLaborCost,
+            internalProfitAmount,
             marginPercent
         };
     }
@@ -578,7 +653,7 @@
     function updateCalculations() {
         if (!state.hasStarted) {
             el.sidebarTotalAmount.textContent = '0';
-            el.sidebarDevHours.textContent = '0 dev hrs';
+            el.sidebarDevHours.textContent = '0 Hours';
             el.sidebarTimelineTag.textContent = 'Ready';
             el.sbSpecProjectType.textContent = 'Not selected';
             el.sbSpecBudget.textContent = 'Not selected';
@@ -594,7 +669,7 @@
 
         // Sidebar updates
         el.sidebarTotalAmount.textContent = formatINR(est.grandTotal);
-        el.sidebarDevHours.textContent = `${est.totalHours} dev hrs`;
+        el.sidebarDevHours.textContent = `Estimated Time: ${est.totalHours} Hours`;
 
         const timeObj = CONFIG.timelines[state.timeline];
         el.sidebarTimelineTag.textContent = timeObj ? timeObj.name : 'Normal';
@@ -609,7 +684,7 @@
         el.sbSpecPages.textContent = pageObj ? pageObj.name : '1–5';
 
         const designObj = CONFIG.designStyles[state.designStyle];
-        el.sbSpecDesign.textContent = designObj ? designObj.name : 'Simple';
+        el.sbSpecDesign.textContent = designObj ? designObj.name : 'Basic';
 
         // Features Cloud
         el.sidebarFeatureCount.textContent = state.selectedFeatures.length;
@@ -622,20 +697,23 @@
             }).join('');
         }
 
-        // Mini Breakdown
+        // Mini Sidebar Breakdown Output
         el.sidebarMiniBreakdown.innerHTML = `
             <div class="breakdown-row"><span>Base Website</span> <span class="val">₹${formatINR(est.baseWebsiteCost)}</span></div>
-            ${est.pageCost > 0 ? `<div class="breakdown-row"><span>Pages</span> <span class="val">+₹${formatINR(est.pageCost)}</span></div>` : ''}
-            ${est.totalFeaturesCost > 0 ? `<div class="breakdown-row"><span>Features</span> <span class="val">+₹${formatINR(est.totalFeaturesCost)}</span></div>` : ''}
+            ${est.extraPagesCost > 0 ? `<div class="breakdown-row"><span>Extra Pages</span> <span class="val">+₹${formatINR(est.extraPagesCost)}</span></div>` : ''}
+            ${est.adminPanelCost > 0 ? `<div class="breakdown-row"><span>Admin Panel</span> <span class="val">+₹${formatINR(est.adminPanelCost)}</span></div>` : ''}
+            ${est.authCost > 0 ? `<div class="breakdown-row"><span>Authentication</span> <span class="val">+₹${formatINR(est.authCost)}</span></div>` : ''}
+            ${est.bundledFeaturesCost > 0 ? `<div class="breakdown-row"><span>Features / Bundle</span> <span class="val">+₹${formatINR(est.bundledFeaturesCost)}</span></div>` : ''}
             ${est.designCost > 0 ? `<div class="breakdown-row"><span>Design</span> <span class="val">+₹${formatINR(est.designCost)}</span></div>` : ''}
-            ${est.deploymentCost > 0 ? `<div class="breakdown-row"><span>Deployment</span> <span class="val">+₹${formatINR(est.deploymentCost)}</span></div>` : ''}
+            ${est.seoCost > 0 ? `<div class="breakdown-row"><span>SEO</span> <span class="val">+₹${formatINR(est.seoCost)}</span></div>` : ''}
+            ${est.hostingCost > 0 ? `<div class="breakdown-row"><span>Hosting</span> <span class="val">+₹${formatINR(est.hostingCost)}</span></div>` : ''}
             ${est.discountAmount > 0 ? `<div class="breakdown-row" style="color:var(--success-color)"><span>Discount (-${est.discountPercent}%)</span> <span class="val">-₹${formatINR(est.discountAmount)}</span></div>` : ''}
             ${state.gstIncluded ? `<div class="breakdown-row"><span>GST Tax (18%)</span> <span class="val">+₹${formatINR(est.gstAmount)}</span></div>` : ''}
         `;
     }
 
     /* --------------------------------------------------------------------------
-       8. FINAL ESTIMATE DASHBOARD & PROPOSAL SHEET (STEP 14)
+       8. FINAL EXECUTIVE ESTIMATE SUMMARY DASHBOARD (STEP 14)
        -------------------------------------------------------------------------- */
     function renderFinalSummary() {
         const est = calculateEstimate();
@@ -643,59 +721,59 @@
         const bizObj = CONFIG.businessSizes[state.businessSize] || CONFIG.businessSizes.small_business;
         const budgetObj = CONFIG.budgetRanges[state.budgeRange] || CONFIG.budgetRanges.b_25k_50k;
         const pageObj = CONFIG.pageCounts[state.pageCount] || CONFIG.pageCounts.p1_5;
-        const designObj = CONFIG.designStyles[state.designStyle] || CONFIG.designStyles.simple;
-        const timeObj = CONFIG.timelines[state.timeline] || CONFIG.timelines.normal;
+        const designObj = CONFIG.designStyles[state.designStyle] || CONFIG.designStyles.basic;
+        const cmsObj = CONFIG.cmsOptions[state.cmsOption] || CONFIG.cmsOptions.none;
+        const userAccObj = CONFIG.userAccountOptions[state.userAccounts] || CONFIG.userAccountOptions.none;
+        const seoObj = CONFIG.seoLevels[state.seoLevel] || CONFIG.seoLevels.basic;
+        const deployObj = CONFIG.deployments[state.deployment] || CONFIG.deployments.deployment;
         const suppObj = CONFIG.supportPlans[state.supportPlan] || CONFIG.supportPlans.none;
 
-        // Smart Suggestions & Budget Trim Tips
-        const suggestions = [];
+        // Intelligent Validation Callouts
+        const validationCallouts = [];
+
+        if (est.isMarketCapExceeded) {
+            validationCallouts.push({
+                isWarning: true,
+                title: '⚠ Price appears higher than typical market value',
+                desc: `Uncapped estimate was ₹${formatINR(est.rawAdditiveTotal)}. Applied TVM local market ceiling cap of ₹${formatINR(est.maxAllowedCap)} for ${projObj.name}. Recommended optimizations: (1) Use Modern Design instead of Premium, (2) Remove unnecessary modules, (3) Use Basic Admin, (4) Reduce page count.`
+            });
+        }
 
         if (est.budgetVariance > 0) {
-            suggestions.push({
+            validationCallouts.push({
                 isWarning: true,
                 title: `⚠ Estimated cost exceeds client's budget by ₹${formatINR(est.budgetVariance)}`,
-                desc: 'Suggestions to reduce scope: (1) Switch to Simple Design (-₹5,000), (2) Keep initial pages to 1–5 (-₹6,000), (3) Use basic CMS instead of full dashboard, (4) Remove optional modules.'
+                desc: `Client budget is ${budgetObj.name}. Consider trimming optional design upgrades or bundling features to fit client budget.`
             });
         }
 
-        if (state.projectType === 'ecommerce' && !state.selectedFeatures.includes('admin_dashboard')) {
-            suggestions.push({
+        if (est.isCmsBundleApplied) {
+            validationCallouts.push({
                 isWarning: false,
-                title: 'Admin Dashboard Recommended',
-                desc: 'E-commerce projects usually require an Admin Dashboard for managing products, inventory & orders.'
+                title: 'Content Management Package Applied',
+                desc: `Multiple content modules selected. Auto-applied bundle savings of ₹${formatINR(est.bundleSavings)} (Package Cost: ₹5,000).`
             });
         }
 
-        if (state.designStyle === 'simple' && ['corporate_website', 'hospital_website', 'ecommerce'].includes(state.projectType)) {
-            suggestions.push({
+        if (est.isEcomBundleApplied) {
+            validationCallouts.push({
                 isWarning: false,
-                title: 'Upgrade to Modern Design',
-                desc: 'Modern or Premium Design will significantly improve brand credibility and customer conversions.'
+                title: 'E-commerce Package Applied',
+                desc: 'Shopping Cart, Wishlist & Payment Gateway bundled into E-commerce Package (Package Cost: ₹12,000).'
             });
         }
 
-        if (state.supportPlan === 'none') {
-            suggestions.push({
-                isWarning: false,
-                title: 'Monthly Maintenance SLA Recommended',
-                desc: 'Monthly maintenance is recommended for security updates, backups & uptime monitoring.'
-            });
-        }
-
-        let complexityLabel = 'Low Complexity';
-        if (est.complexityScore >= 8) complexityLabel = 'High Complexity';
-        else if (est.complexityScore >= 5) complexityLabel = 'Medium Complexity';
-        suggestions.push({
+        validationCallouts.push({
             isWarning: false,
-            title: `Project Complexity Rating: ${est.complexityScore}/10 (${complexityLabel})`,
-            desc: `Estimated internal effort: ${est.totalHours} Hours (${est.frontendHours}h Frontend, ${est.backendHours}h Backend, ${est.testingHours}h QA/Testing, ${est.deploymentHours}h Deployment).`
+            title: `Estimated Development Time: ${est.totalHours} Hours`,
+            desc: 'Internal effort estimate for project scheduling. (Hours do NOT affect client quotation pricing).'
         });
 
         el.estimateSummaryContainer.innerHTML = `
             <div class="summary-header-banner">
                 <div class="banner-left">
                     <h2>FlumenX Client Quotation Summary</h2>
-                    <p>Local Agency Quote • ${projObj.name} (${bizObj.name}) • ${pageObj.name}</p>
+                    <p>TVM Agency Quote • ${projObj.name} (${bizObj.name}) • ${pageObj.name}</p>
                 </div>
                 <div class="banner-actions">
                     <button type="button" class="btn-secondary" id="saveEstimateTriggerBtn">
@@ -706,31 +784,6 @@
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                         <span>Print / Export PDF</span>
                     </button>
-                </div>
-            </div>
-
-            <!-- 3 Estimate Level Tiers -->
-            <div class="quote-tiers-grid">
-                <div class="quote-tier-card">
-                    <div>
-                        <span class="tier-tag">Economy Scope</span>
-                        <div class="tier-price">₹${formatINR(est.economyQuote)}</div>
-                    </div>
-                    <p class="tier-desc">Core website & essential features only (Ideal for budget negotiation).</p>
-                </div>
-                <div class="quote-tier-card recommended">
-                    <div>
-                        <span class="tier-tag">Recommended Scope</span>
-                        <div class="tier-price">₹${formatINR(est.recommendedQuote)}</div>
-                    </div>
-                    <p class="tier-desc">Optimal balance of design polish, requested features & speed.</p>
-                </div>
-                <div class="quote-tier-card">
-                    <div>
-                        <span class="tier-tag">Premium Scope</span>
-                        <div class="tier-price">₹${formatINR(est.premiumQuote)}</div>
-                    </div>
-                    <p class="tier-desc">Fully loaded with Premium Design, VPS deployment & SLAs.</p>
                 </div>
             </div>
 
@@ -746,36 +799,23 @@
                     <div class="kpi-sub" style="color:${est.budgetVariance > 0 ? 'var(--warning-color)' : 'var(--success-color)'}">${est.budgetVariance <= 0 ? '✓ Within Target Budget' : `+₹${formatINR(est.budgetVariance)} Over Target`}</div>
                 </div>
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Estimated Effort</span>
-                    <div class="kpi-val">${est.totalHours} Dev Hrs</div>
-                    <div class="kpi-sub">Frontend: ${est.frontendHours}h | Backend: ${est.backendHours}h</div>
+                    <span class="kpi-lbl">Estimated Time</span>
+                    <div class="kpi-val">${est.totalHours} Hours</div>
+                    <div class="kpi-sub">Informational Effort Only</div>
                 </div>
                 <div class="kpi-card">
-                    <span class="kpi-lbl">Monthly SLA (Separate)</span>
+                    <span class="kpi-lbl">Maintenance SLA (Separate)</span>
                     <div class="kpi-val">${est.monthlySupport > 0 ? `₹${formatINR(est.monthlySupport)}/mo` : 'None'}</div>
                     <div class="kpi-sub">${suppObj.name}</div>
-                </div>
-            </div>
-
-            <div class="complexity-box">
-                <div class="complexity-info">
-                    <h4>Project Complexity Score</h4>
-                    <p>Estimated effort: ${est.frontendHours}h Frontend • ${est.backendHours}h Backend • ${est.testingHours}h Testing • ${est.deploymentHours}h Deployment.</p>
-                </div>
-                <div class="complexity-meter-container">
-                    <div class="complexity-track">
-                        <div class="complexity-fill" style="width: ${(est.complexityScore / 10) * 100}%;"></div>
-                    </div>
-                    <span class="complexity-score-val">${est.complexityScore} / 10</span>
                 </div>
             </div>
 
             <div class="smart-suggestions-box">
                 <h3>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    <span>Smart Suggestions & Sales Insights</span>
+                    <span>Intelligent Market Validation & Sales Insights</span>
                 </h3>
-                ${suggestions.map(s => `
+                ${validationCallouts.map(s => `
                     <div class="suggestion-item ${s.isWarning ? 'warning' : ''}">
                         <span class="bullet" style="color:${s.isWarning ? 'var(--danger-color)' : 'var(--success-color)'}">${s.isWarning ? '⚠' : '✓'}</span>
                         <div>
@@ -785,19 +825,19 @@
                 `).join('')}
             </div>
 
-            <!-- Internal Controls: Discount & Profit Margin (Hidden on Client PDF) -->
+            <!-- Internal Tools: Discount Slider & Profit Margin Calculator (Hidden from Client PDF) -->
             <div class="margin-control-box no-print">
                 <div style="flex:1">
-                    <span class="margin-title">Internal Sales Discount & Margin</span>
-                    <p style="font-size:0.8rem; color:var(--text-muted)">Internal tool only (Hidden from client PDF printouts).</p>
+                    <span class="margin-title">Internal Sales Discount & Margin Calculator</span>
+                    <p style="font-size:0.8rem; color:var(--text-muted)">Internal sales tool only (Hidden from client PDF printouts).</p>
                 </div>
                 <div class="margin-controls">
-                    <span style="font-size:0.85rem; font-weight:600">Discount:</span>
-                    <input type="range" min="0" max="20" step="5" value="${state.discountPercent}" class="margin-slider" id="discountSlider">
+                    <span style="font-size:0.85rem; font-weight:600">Manual Discount (0–30%):</span>
+                    <input type="range" min="0" max="30" step="5" value="${state.discountPercent}" class="margin-slider" id="discountSlider">
                     <span class="margin-val-badge" id="discountValBadge">${state.discountPercent}%</span>
                 </div>
                 <div style="font-family:var(--font-mono); font-size:0.85rem">
-                    Dev Cost: ₹${formatINR(est.devCost)} | Profit: <span style="color:var(--success-color); font-weight:700">₹${formatINR(est.profitAmount)} (${est.marginPercent}%)</span>
+                    Dev Labor Cost: ₹${formatINR(est.devLaborCost)} | Internal Profit: <span style="color:var(--success-color); font-weight:700">₹${formatINR(est.internalProfitAmount)} (${est.marginPercent}%)</span>
                 </div>
                 <div class="gst-toggle-wrapper">
                     <span style="font-size:0.85rem; font-weight:600">GST (18%)</span>
@@ -808,68 +848,74 @@
                 </div>
             </div>
 
+            <!-- Itemized Client Quotation Breakdown Table -->
             <div class="itemized-table-card">
                 <div class="table-header">
-                    <h3>Itemized Quotation Breakdown</h3>
+                    <h3>Itemized Quotation Output</h3>
                     <span class="count-tag">${projObj.name}</span>
                 </div>
                 <table class="estimate-table">
                     <thead>
                         <tr>
-                            <th>Scope Component</th>
-                            <th>Configuration Detail</th>
-                            <th style="text-align:right">Price (INR)</th>
+                            <th>Scope Item</th>
+                            <th>Detail</th>
+                            <th style="text-align:right">Amount (INR)</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td><strong>Base Website</strong></td>
-                            <td>${projObj.name} (${bizObj.name} package)</td>
+                            <td>${projObj.name} (${bizObj.name})</td>
                             <td class="col-price">₹${formatINR(est.baseWebsiteCost)}</td>
                         </tr>
                         <tr>
-                            <td><strong>Pages Volume</strong></td>
+                            <td><strong>Extra Pages</strong></td>
                             <td>${pageObj.name}</td>
-                            <td class="col-price">${est.pageCost > 0 ? '₹' + formatINR(est.pageCost) : 'Included'}</td>
+                            <td class="col-price">${est.extraPagesCost > 0 ? '₹' + formatINR(est.extraPagesCost) : 'Included'}</td>
                         </tr>
                         <tr>
-                            <td><strong>Content Management</strong></td>
-                            <td>${(CONFIG.cmsOptions[state.cmsOption] || {}).name}</td>
-                            <td class="col-price">${(CONFIG.cmsOptions[state.cmsOption]?.price || 0) > 0 ? '₹' + formatINR(CONFIG.cmsOptions[state.cmsOption].price) : 'Included'}</td>
+                            <td><strong>Admin Panel</strong></td>
+                            <td>${cmsObj.name}</td>
+                            <td class="col-price">${est.adminPanelCost > 0 ? '₹' + formatINR(est.adminPanelCost) : 'Included'}</td>
                         </tr>
                         <tr>
-                            <td><strong>User Accounts</strong></td>
-                            <td>${(CONFIG.userAccountOptions[state.userAccounts] || {}).name}</td>
-                            <td class="col-price">${(CONFIG.userAccountOptions[state.userAccounts]?.price || 0) > 0 ? '₹' + formatINR(CONFIG.userAccountOptions[state.userAccounts].price) : 'Included'}</td>
+                            <td><strong>Authentication</strong></td>
+                            <td>${userAccObj.name}</td>
+                            <td class="col-price">${est.authCost > 0 ? '₹' + formatINR(est.authCost) : 'Included'}</td>
                         </tr>
                         <tr>
-                            <td><strong>Features & Add-ons</strong></td>
-                            <td>${state.selectedFeatures.map(k => CONFIG.features[k]?.name).filter(Boolean).join(', ') || 'Contact Form (Included)'}</td>
-                            <td class="col-price">${est.featuresCostOnly > 0 ? '₹' + formatINR(est.featuresCostOnly) : 'Included'}</td>
+                            <td><strong>Features / Smart Package</strong></td>
+                            <td>${est.featureBreakdownLabels.length > 0 ? est.featureBreakdownLabels.join(' + ') : 'Contact Form, Responsive Design, SSL, Basic SEO (Included)'}</td>
+                            <td class="col-price">${est.bundledFeaturesCost > 0 ? '₹' + formatINR(est.bundledFeaturesCost) : 'Included'}</td>
                         </tr>
                         <tr>
-                            <td><strong>Design Style</strong></td>
-                            <td>${designObj.name} style</td>
+                            <td><strong>Design Upgrade</strong></td>
+                            <td>${designObj.name}</td>
                             <td class="col-price">${est.designCost > 0 ? '₹' + formatINR(est.designCost) : 'Included'}</td>
                         </tr>
                         <tr>
-                            <td><strong>Animations & Motion</strong></td>
+                            <td><strong>Animations</strong></td>
                             <td>${(CONFIG.animations[state.animationLevel] || {}).name}</td>
-                            <td class="col-price">${(CONFIG.animations[state.animationLevel]?.price || 0) > 0 ? '₹' + formatINR(CONFIG.animations[state.animationLevel].price) : 'Included'}</td>
+                            <td class="col-price">${est.animationCost > 0 ? '₹' + formatINR(est.animationCost) : 'Included'}</td>
                         </tr>
                         <tr>
-                            <td><strong>Deployment & Server</strong></td>
-                            <td>${(CONFIG.deployments[state.deployment] || {}).name}</td>
-                            <td class="col-price">${est.deploymentCost > 0 ? '₹' + formatINR(est.deploymentCost) : 'Included'}</td>
+                            <td><strong>SEO Scope</strong></td>
+                            <td>${seoObj.name}</td>
+                            <td class="col-price">${est.seoCost > 0 ? '₹' + formatINR(est.seoCost) : 'Included'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hosting & Deployment</strong></td>
+                            <td>${deployObj.name}</td>
+                            <td class="col-price">${est.hostingCost > 0 ? '₹' + formatINR(est.hostingCost) : 'Included'}</td>
                         </tr>
                         ${est.discountAmount > 0 ? `
                         <tr style="color:var(--success-color)">
-                            <td><strong>Sales Discount (-${est.discountPercent}%)</strong></td>
-                            <td>Special internal client concession</td>
+                            <td><strong>Manual Discount (-${est.discountPercent}%)</strong></td>
+                            <td>Special client concession</td>
                             <td class="col-price">-₹${formatINR(est.discountAmount)}</td>
                         </tr>` : ''}
                         <tr class="total-row">
-                            <td colspan="2">Subtotal Project Cost</td>
+                            <td colspan="2">Subtotal Project Price</td>
                             <td class="col-price">₹${formatINR(est.finalBaseTotal)}</td>
                         </tr>
                         ${state.gstIncluded ? `
@@ -878,12 +924,12 @@
                             <td class="col-price">₹${formatINR(est.gstAmount)}</td>
                         </tr>` : ''}
                         <tr class="grand-total-row">
-                            <td colspan="2">Grand Total Quotation</td>
+                            <td colspan="2">Final Estimate</td>
                             <td class="col-price">₹${formatINR(est.grandTotal)}</td>
                         </tr>
                         ${est.monthlySupport > 0 ? `
                         <tr style="background-color:rgba(99,102,241,0.05)">
-                            <td colspan="2"><strong>Monthly Maintenance SLA (Separate)</strong></td>
+                            <td colspan="2"><strong>Maintenance SLA (Displayed Separately)</strong></td>
                             <td class="col-price" style="color:var(--accent-primary)">₹${formatINR(est.monthlySupport)}/month</td>
                         </tr>` : ''}
                     </tbody>
@@ -891,7 +937,7 @@
             </div>
         `;
 
-        // Event Listeners for Summary Controls
+        // Attach listeners for internal controls
         const discountSlider = document.getElementById('discountSlider');
         const gstToggleInput = document.getElementById('gstToggleInput');
         const saveEstimateTriggerBtn = document.getElementById('saveEstimateTriggerBtn');
@@ -937,14 +983,14 @@
             { id: 'projectTypes', label: 'Project Types' },
             { id: 'businessSizes', label: 'Business Sizes' },
             { id: 'pageCounts', label: 'Page Volume' },
-            { id: 'cmsOptions', label: 'CMS Content' },
-            { id: 'userAccountOptions', label: 'User Accounts' },
-            { id: 'features', label: 'Online Features' },
+            { id: 'cmsOptions', label: 'Admin Panel' },
+            { id: 'userAccountOptions', label: 'Authentication' },
+            { id: 'features', label: 'Features' },
             { id: 'designStyles', label: 'Design Styles' },
             { id: 'animations', label: 'Animations' },
-            { id: 'timelines', label: 'Timelines' },
-            { id: 'deployments', label: 'Deployment' },
-            { id: 'supportPlans', label: 'Support SLA' }
+            { id: 'seoLevels', label: 'SEO' },
+            { id: 'deployments', label: 'Hosting' },
+            { id: 'supportPlans', label: 'Maintenance' }
         ];
 
         el.settingsTabs.innerHTML = tabs.map(t => `
@@ -970,16 +1016,14 @@
             const row = document.createElement('div');
             row.className = 'setting-row';
 
-            const isMultCategory = (tabCategory === 'timelines');
-
             row.innerHTML = `
                 <div class="setting-label">${item.name}</div>
                 <div class="setting-input-group">
-                    <label>${isMultCategory ? 'Multiplier' : 'Price (₹)'}</label>
-                    <input type="number" step="${isMultCategory ? '0.05' : '100'}" class="setting-input val-input" data-cat="${tabCategory}" data-key="${key}" data-field="${isMultCategory ? 'mult' : 'price'}" value="${isMultCategory ? item.mult : (item.price || 0)}">
+                    <label>Price (₹)</label>
+                    <input type="number" step="100" class="setting-input val-input" data-cat="${tabCategory}" data-key="${key}" data-field="price" value="${item.price || 0}">
                 </div>
                 <div class="setting-input-group">
-                    <label>Hours</label>
+                    <label>Hours (Informational)</label>
                     <input type="number" step="1" class="setting-input hrs-input" data-cat="${tabCategory}" data-key="${key}" data-field="hours" value="${item.hours !== undefined ? item.hours : 0}">
                 </div>
             `;
@@ -1006,17 +1050,17 @@
         renderAllGrids();
         updateCalculations();
         el.pricingSettingsModal.classList.add('hidden');
-        alert('Pricing rates updated and saved successfully!');
+        alert('Pricing configuration updated and saved successfully!');
     }
 
     function resetToDefaultRates() {
-        if (confirm('Reset all rates back to default local TVM agency rates?')) {
+        if (confirm('Reset all rates back to default TVM agency rates?')) {
             CONFIG = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
             localStorage.removeItem('flumenx_smart_config');
             renderAllGrids();
             updateCalculations();
             renderSettingsTabContent(currentSettingsTab);
-            alert('Rates reset to local TVM defaults.');
+            alert('Rates reset to default TVM agency rates.');
         }
     }
 
@@ -1197,13 +1241,14 @@
                         businessSize: 'small_business',
                         budgeRange: 'b_25k_50k',
                         pageCount: 'p1_5',
-                        cmsOption: 'occasionally',
+                        cmsOption: 'basic',
                         userAccounts: 'none',
-                        selectedFeatures: ['contact_form'],
-                        designStyle: 'simple',
+                        selectedFeatures: ['contact_form', 'responsive_design', 'whatsapp'],
+                        designStyle: 'basic',
                         animationLevel: 'none',
+                        seoLevel: 'basic',
                         timeline: 'normal',
-                        deployment: 'deploy_only',
+                        deployment: 'deployment',
                         supportPlan: 'none',
                         customNotes: '',
                         gstIncluded: true,
