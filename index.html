@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlumenX - Smart Website Pricing Calculator</title>
+    <meta name="description" content="Business-focused internal pricing calculator for FlumenX sales team. Build consistent estimates in under 2 minutes.">
+    <!-- Google Fonts: Inter for UI & JetBrains Mono for tabular numbers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">FlumenX</span>
+                    <span class="brand-tag">Smart Pricing Calculator</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button type="button" class="btn-ghost" id="pricingSettingsBtn" title="Manage Base Pricing & Rates">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Manage Rates</span>
+                </button>
+
+                <button type="button" class="btn-ghost" id="savedQuotesBtn" title="Saved Estimates">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    <span>Saved Quotes</span>
+                    <span class="badge" id="savedCountBadge">0</span>
+                </button>
+
+                <button type="button" class="btn-ghost" id="resetBtn" title="Reset Estimator">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    <span>Reset</span>
+                </button>
+
+                <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark/light mode">
+                    <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="app-layout">
+        <!-- Main Wizard Container -->
+        <section class="wizard-container">
+            <!-- Global Step Progress Header -->
+            <div class="progress-bar-wrapper" id="progressBarWrapper">
+                <div class="progress-info">
+                    <span class="step-counter" id="stepCounterText">Step 1 of 12</span>
+                    <span class="step-title-peek" id="stepTitlePeek">Welcome</span>
+                    <span class="progress-percent" id="progressPercentText">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Steps Slider / Render View -->
+            <div class="wizard-views" id="wizardViews">
+                <!-- STEP 1: WELCOME SCREEN -->
+                <div class="step-panel active" id="step-1" data-step="1">
+                    <div class="welcome-card">
+                        <div class="welcome-badge">
+                            <span class="dot-pulse"></span>
+                            Internal Sales Tool
+                        </div>
+                        <h1 class="welcome-heading">FlumenX Smart Pricing Calculator</h1>
+                        <p class="welcome-subheading">Generate business-focused, itemized website and app proposals in under 2 minutes. Configured with TVM low-based rates & smart recommendations.</p>
+                        
+                        <div class="features-grid-mini">
+                            <div class="mini-feat-item">
+                                <div class="icon-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                </div>
+                                <div>
+                                    <h4>Business-Focused</h4>
+                                    <p>Simple non-technical questions auto-select scope & features.</p>
+                                </div>
+                            </div>
+                            <div class="mini-feat-item">
+                                <div class="icon-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                </div>
+                                <div>
+                                    <h4>Instant Quotation PDF</h4>
+                                    <p>Generate clean client proposal sheets formatted for sales pitches.</p>
+                                </div>
+                            </div>
+                            <div class="mini-feat-item">
+                                <div class="icon-box">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                </div>
+                                <div>
+                                    <h4>Budget Matching</h4>
+                                    <p>Auto-compares cost against client budget with scope trim tips.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="welcome-actions">
+                            <button type="button" class="btn-primary btn-lg" id="startEstimateBtn">
+                                <span>Start Estimation</span>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: PROJECT TYPE -->
+                <div class="step-panel" id="step-2" data-step="2">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 1 of 12</span>
+                        <h2>What would you like to build?</h2>
+                        <p>Select the primary project scope or solution type.</p>
+                    </div>
+                    <div class="cards-grid grid-3col" id="projectTypeGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 3: BUSINESS SIZE -->
+                <div class="step-panel" id="step-3" data-step="3">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 2 of 12</span>
+                        <h2>Who is this website for?</h2>
+                        <p>Helps tailor recommended SLAs, scale, and compliance features.</p>
+                    </div>
+                    <div class="cards-grid grid-3col" id="businessSizeGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 4: BUDGET -->
+                <div class="step-panel" id="step-4" data-step="4">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 3 of 12</span>
+                        <h2>What is the client's expected budget?</h2>
+                        <p>Used to provide budget-matching feedback and scope trim suggestions.</p>
+                    </div>
+                    <div class="cards-grid grid-3col" id="budgetRangeGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 5: NUMBER OF PAGES -->
+                <div class="step-panel" id="step-5" data-step="5">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 4 of 12</span>
+                        <h2>Approximately how many pages are required?</h2>
+                        <p>Select estimated total layout pages in scope.</p>
+                    </div>
+                    <div class="cards-grid grid-2col" id="pageCountGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 6: CONTENT MANAGEMENT -->
+                <div class="step-panel" id="step-6" data-step="6">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 5 of 12</span>
+                        <h2>Will the client need to update content themselves?</h2>
+                        <p>Determines whether a CMS (Content Management System) is required.</p>
+                    </div>
+                    <div class="cards-grid grid-3col" id="cmsNeedGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 7: USER ACCOUNTS -->
+                <div class="step-panel" id="step-7" data-step="7">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 6 of 12</span>
+                        <h2>Will visitors need to log in?</h2>
+                        <p>Determines user account access and security architecture.</p>
+                    </div>
+                    <div class="cards-grid grid-2col" id="userAccountsGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 8: ONLINE FEATURES -->
+                <div class="step-panel" id="step-8" data-step="8">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 7 of 12</span>
+                        <h2>Which of these features does the client need?</h2>
+                        <p>Select all required online modules. Recommended features are auto-highlighted.</p>
+                    </div>
+                    <div class="cards-grid grid-4col" id="featuresGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 9: DESIGN STYLE -->
+                <div class="step-panel" id="step-9" data-step="9">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 8 of 12</span>
+                        <h2>How premium should the website look?</h2>
+                        <p>Applies a design polish and component styling multiplier.</p>
+                    </div>
+                    <div class="cards-grid grid-2col" id="designStyleGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 10: ANIMATIONS -->
+                <div class="step-panel" id="step-10" data-step="10">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 9 of 12</span>
+                        <h2>How interactive should the website feel?</h2>
+                        <p>Motion design, page transition effects, and micro-interactions.</p>
+                    </div>
+                    <div class="cards-grid grid-3col" id="animationsGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 11: TIMELINE -->
+                <div class="step-panel" id="step-11" data-step="11">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 10 of 12</span>
+                        <h2>When should the project be completed?</h2>
+                        <p>Urgent schedules apply a rush delivery multiplier.</p>
+                    </div>
+                    <div class="cards-grid grid-2col" id="timelineGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 12: DEPLOYMENT -->
+                <div class="step-panel" id="step-12" data-step="12">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 11 of 12</span>
+                        <h2>Who will manage hosting & deployment?</h2>
+                        <p>Server provisioning, domain pointing, SSL configuration, or cloud setup.</p>
+                    </div>
+                    <div class="cards-grid grid-3col" id="deploymentGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 13: SUPPORT & MAINTENANCE -->
+                <div class="step-panel" id="step-13" data-step="13">
+                    <div class="step-header">
+                        <span class="step-number-tag">Step 12 of 12</span>
+                        <h2>Does the client require ongoing support & maintenance?</h2>
+                        <p>Monthly recurring SLA, security updates, bug fixes, and monitoring.</p>
+                    </div>
+                    <div class="cards-grid grid-2col" id="supportGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 14: COMPLETE ESTIMATE DASHBOARD -->
+                <div class="step-panel" id="step-14" data-step="14">
+                    <div class="estimate-summary-container" id="estimateSummaryContainer">
+                        <!-- Rendered dynamically by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Footer Navigation (Previous / Next buttons) -->
+            <footer class="wizard-footer" id="wizardFooter">
+                <button type="button" class="btn-secondary" id="prevStepBtn" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span>Back</span>
+                </button>
+                <div class="footer-center" id="footerStepIndicator">Step 1 of 12</div>
+                <button type="button" class="btn-primary" id="nextStepBtn">
+                    <span>Next Step</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </button>
+            </footer>
+        </section>
+
+        <!-- Sticky Live Sidebar Dashboard -->
+        <aside class="sidebar-estimator" id="sidebarEstimator">
+            <div class="sidebar-header">
+                <h3>Live Estimate</h3>
+                <span class="pulse-tag">TVM Rates</span>
+            </div>
+
+            <div class="sidebar-total-card">
+                <span class="total-label">Estimated Grand Total</span>
+                <div class="total-amount-row">
+                    <span class="currency-symbol">₹</span>
+                    <span class="amount-val" id="sidebarTotalAmount">0</span>
+                </div>
+                <div class="total-sub-meta">
+                    <span id="sidebarDevHours">0 hrs</span>
+                    <span class="dot-sep">•</span>
+                    <span id="sidebarTimelineTag">Normal Delivery</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Selected Specs</span>
+                <ul class="specs-list" id="sidebarSpecsList">
+                    <li><span class="spec-lbl">Project Type:</span> <span class="spec-val" id="sbSpecProjectType">Business Website</span></li>
+                    <li><span class="spec-lbl">Target Budget:</span> <span class="spec-val" id="sbSpecBudget">₹30K–₹60K</span></li>
+                    <li><span class="spec-lbl">Pages:</span> <span class="spec-val" id="sbSpecPages">1–5</span></li>
+                    <li><span class="spec-lbl">Design Style:</span> <span class="spec-val" id="sbSpecDesign">Simple</span></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-header">
+                    <span class="sidebar-section-title">Selected Features</span>
+                    <span class="count-tag" id="sidebarFeatureCount">0</span>
+                </div>
+                <div class="features-tags-cloud" id="sidebarFeaturesCloud">
+                    <span class="empty-cloud-text">No add-on features selected</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Line Items Preview</span>
+                <div class="mini-breakdown-list" id="sidebarMiniBreakdown">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Modal for Saved Estimates -->
+    <div class="modal-backdrop hidden" id="savedQuotesModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Saved Estimates</h3>
+                <button type="button" class="close-btn" id="closeSavedModalBtn">&times;</button>
+            </div>
+            <div class="modal-body" id="savedQuotesList">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Dynamic Pricing Rate Management -->
+    <div class="modal-backdrop hidden" id="pricingSettingsModal">
+        <div class="modal-card modal-lg">
+            <div class="modal-header">
+                <h3>Manage Base Pricing & Rates</h3>
+                <button type="button" class="close-btn" id="closeSettingsModalBtn">&times;</button>
+            </div>
+            <div class="modal-body-settings" id="pricingSettingsBody">
+                <p class="settings-intro">Update base prices (in ₹ INR), hours, or multipliers directly in the UI. Changes auto-save locally.</p>
+                <div class="settings-tabs" id="settingsTabs">
+                    <button type="button" class="tab-btn active" data-tab="projectTypes">Project Types</button>
+                    <button type="button" class="tab-btn" data-tab="businessSizes">Business Sizes</button>
+                    <button type="button" class="tab-btn" data-tab="pageCounts">Page Volume</button>
+                    <button type="button" class="tab-btn" data-tab="cmsOptions">CMS Content</button>
+                    <button type="button" class="tab-btn" data-tab="userAccountOptions">User Accounts</button>
+                    <button type="button" class="tab-btn" data-tab="features">Online Features</button>
+                    <button type="button" class="tab-btn" data-tab="designStyles">Design Styles</button>
+                    <button type="button" class="tab-btn" data-tab="animations">Animations</button>
+                    <button type="button" class="tab-btn" data-tab="timelines">Timeline</button>
+                    <button type="button" class="tab-btn" data-tab="deployments">Deployment</button>
+                    <button type="button" class="tab-btn" data-tab="supportPlans">Support SLA</button>
+                </div>
+                <div class="settings-tab-content" id="settingsTabContent">
+                    <!-- Dynamic forms rendered by JS -->
+                </div>
+            </div>
+            <div class="modal-footer-settings">
+                <button type="button" class="btn-secondary" id="resetDefaultRatesBtn">Reset to Default TVM Rates</button>
+                <button type="button" class="btn-primary" id="saveRatesBtn">Save All Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script loading -->
+    <script src="script.js"></script>
+</body>
+</html>
