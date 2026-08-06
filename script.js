@@ -186,19 +186,19 @@
         hasStarted: false,
         currentStep: 1,
         totalSteps: 12,
-        projectType: 'business_website',
-        businessSize: 'small_business',
-        budgeRange: 'b_25k_50k',
-        pageCount: 'p1_5',
-        cmsOption: 'basic',
-        userAccounts: 'none',
-        selectedFeatures: ['contact_form', 'responsive_design', 'whatsapp'],
-        designStyle: 'basic',
-        animationLevel: 'none',
-        seoLevel: 'basic',
-        timeline: 'normal',
-        deployment: 'deployment',
-        supportPlan: 'none',
+        projectType: '',
+        businessSize: '',
+        budgeRange: '',
+        pageCount: '',
+        cmsOption: '',
+        userAccounts: '',
+        selectedFeatures: [],
+        designStyle: '',
+        animationLevel: '',
+        seoLevel: '',
+        timeline: '',
+        deployment: '',
+        supportPlan: '',
         customNotes: '',
         gstIncluded: true,
         discountPercent: 0, // Manual Discount (0% to 30%)
@@ -651,7 +651,7 @@
     }
 
     function updateCalculations() {
-        if (!state.hasStarted) {
+        if (!state.hasStarted || !state.projectType) {
             el.sidebarTotalAmount.textContent = '0';
             el.sidebarDevHours.textContent = '0 Hours';
             el.sidebarTimelineTag.textContent = 'Ready';
@@ -661,7 +661,7 @@
             el.sbSpecDesign.textContent = 'Not selected';
             el.sidebarFeatureCount.textContent = '0';
             el.sidebarFeaturesCloud.innerHTML = '<span class="empty-cloud-text">No add-on features selected</span>';
-            el.sidebarMiniBreakdown.innerHTML = '<span class="empty-cloud-text" style="font-size:0.8rem">Start estimation to see price breakdown</span>';
+            el.sidebarMiniBreakdown.innerHTML = '<span class="empty-cloud-text" style="font-size:0.8rem">Select options to see price breakdown</span>';
             return;
         }
 
@@ -675,16 +675,16 @@
         el.sidebarTimelineTag.textContent = timeObj ? timeObj.name : 'Normal';
 
         const projObj = CONFIG.projectTypes[state.projectType];
-        el.sbSpecProjectType.textContent = projObj ? projObj.name : 'Business Website';
+        el.sbSpecProjectType.textContent = projObj ? projObj.name : 'Not selected';
 
         const budgetObj = CONFIG.budgetRanges[state.budgeRange];
-        el.sbSpecBudget.textContent = budgetObj ? budgetObj.name : '₹25K–₹50K';
+        el.sbSpecBudget.textContent = budgetObj ? budgetObj.name : 'Not selected';
 
         const pageObj = CONFIG.pageCounts[state.pageCount];
-        el.sbSpecPages.textContent = pageObj ? pageObj.name : '1–5';
+        el.sbSpecPages.textContent = pageObj ? pageObj.name : 'Not selected';
 
         const designObj = CONFIG.designStyles[state.designStyle];
-        el.sbSpecDesign.textContent = designObj ? designObj.name : 'Basic';
+        el.sbSpecDesign.textContent = designObj ? designObj.name : 'Not selected';
 
         // Features Cloud
         el.sidebarFeatureCount.textContent = state.selectedFeatures.length;
@@ -1237,19 +1237,19 @@
                         hasStarted: false,
                         currentStep: 1,
                         totalSteps: 12,
-                        projectType: 'business_website',
-                        businessSize: 'small_business',
-                        budgeRange: 'b_25k_50k',
-                        pageCount: 'p1_5',
-                        cmsOption: 'basic',
-                        userAccounts: 'none',
-                        selectedFeatures: ['contact_form', 'responsive_design', 'whatsapp'],
-                        designStyle: 'basic',
-                        animationLevel: 'none',
-                        seoLevel: 'basic',
-                        timeline: 'normal',
-                        deployment: 'deployment',
-                        supportPlan: 'none',
+                        projectType: '',
+                        businessSize: '',
+                        budgeRange: '',
+                        pageCount: '',
+                        cmsOption: '',
+                        userAccounts: '',
+                        selectedFeatures: [],
+                        designStyle: '',
+                        animationLevel: '',
+                        seoLevel: '',
+                        timeline: '',
+                        deployment: '',
+                        supportPlan: '',
                         customNotes: '',
                         gstIncluded: true,
                         discountPercent: 0,
